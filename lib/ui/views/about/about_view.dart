@@ -11,8 +11,10 @@ import 'package:mobile_app/ui/views/about/about_tos_view.dart';
 import 'package:mobile_app/ui/views/about/components/contributor_avatar.dart';
 import 'package:mobile_app/ui/views/base_view.dart';
 import 'package:mobile_app/viewmodels/about/about_viewmodel.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AboutView extends StatefulWidget {
+  const AboutView({Key? key}) : super(key: key);
   static const String id = 'about_view';
 
   @override
@@ -20,7 +22,7 @@ class AboutView extends StatefulWidget {
 }
 
 class _AboutViewState extends State<AboutView> {
-  AboutViewModel _model;
+  late AboutViewModel _model;
 
   Widget _buildTosAndPrivacyButtons() {
     return Container(
@@ -29,15 +31,15 @@ class _AboutViewState extends State<AboutView> {
         children: <Widget>[
           Expanded(
             child: CVPrimaryButton(
-              title: 'Terms Of Service',
+              title: AppLocalizations.of(context)!.terms_of_service,
               isBodyText: true,
               onPressed: () => Get.toNamed(AboutTosView.id),
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Expanded(
             child: CVPrimaryButton(
-              title: 'Privacy Policy',
+              title: AppLocalizations.of(context)!.privacy_policy,
               isBodyText: true,
               onPressed: () => Get.toNamed(AboutPrivacyPolicyView.id),
             ),
@@ -51,27 +53,25 @@ class _AboutViewState extends State<AboutView> {
     switch (_model.stateFor(_model.FETCH_CONTRIBUTORS)) {
       case ViewState.Success:
         var _contributorsAvatars = <Widget>[];
-        _model.cvContributors.forEach((contributor) {
+        for (var contributor in _model.cvContributors) {
           if (contributor.type == Type.USER) {
             _contributorsAvatars.add(
               ContributorAvatar(contributor: contributor),
             );
           }
-        });
+        }
         return Wrap(
           alignment: WrapAlignment.center,
           children: _contributorsAvatars,
         );
-        break;
       case ViewState.Busy:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
           child: Text(
-            'Loading Contributors ...',
+            AppLocalizations.of(context)!.loading_contributors,
             textAlign: TextAlign.center,
           ),
         );
-        break;
       case ViewState.Error:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
@@ -80,7 +80,6 @@ class _AboutViewState extends State<AboutView> {
             textAlign: TextAlign.center,
           ),
         );
-        break;
       default:
         return Container();
     }
@@ -99,30 +98,27 @@ class _AboutViewState extends State<AboutView> {
           child: Column(
             children: <Widget>[
               CVHeader(
-                title: 'ABOUT',
-                subtitle: 'Learn about the Awesome people behind CircuitVerse',
-                description:
-                    'CircuitVerse is a product developed by students at IIIT-Bangalore. It aims to provide a platform where circuits can be designed and simulated using a graphical user interface. While users can design complete CPU implementations within the simulator, the software is designed primarily for educational use. CircuitVerse is an opensource project with an active community. Checkout the contribute page for more detail.',
+                title: AppLocalizations.of(context)!.about_title,
+                subtitle: AppLocalizations.of(context)?.about_subtitle,
+                description: AppLocalizations.of(context)?.about_description,
               ),
               _buildTosAndPrivacyButtons(),
               CircuitVerseSocialCard(
                 imagePath: 'assets/images/contribute/email.png',
-                title: 'Email us at',
+                title: AppLocalizations.of(context)!.email_us_at,
                 description: 'support@circuitverse.org',
                 url: 'mailto:support@circuitverse.org',
               ),
               CircuitVerseSocialCard(
                 imagePath: 'assets/images/contribute/slack.png',
-                title: 'Join and chat with us at',
-                description: 'Slack channel',
-                url:
-                    'https://join.slack.com/t/circuitverse-team/shared_invite/enQtNjc4MzcyNDE5OTA3LTdjYTM5NjFiZWZlZGI2MmU1MmYzYzczNmZlZDg5MjYxYmQ4ODRjMjQxM2UyMWI5ODUzODQzMDU2ZDEzNjI4NmE',
+                title: AppLocalizations.of(context)!.join_slack,
+                description: AppLocalizations.of(context)!.slack_channel,
+                url: 'https://circuitverse.org/slack',
               ),
-              Divider(),
+              const Divider(),
               CVSubheader(
-                title: 'Contributors',
-                subtitle:
-                    "Meet the awesome people of CircuitVerse community that've made this platform what it is now.",
+                title: AppLocalizations.of(context)!.contributors,
+                subtitle: AppLocalizations.of(context)?.contributors_subtitle,
               ),
               _buildContributorsList(),
             ],

@@ -13,10 +13,10 @@ void main() {
 
       expect(_assignments, isInstanceOf<Assignments>());
 
-      expect(_assignments.data, isInstanceOf<List<Assignment>>());
-      expect(_assignments.data.length, 1);
+      expect(_assignments.data, isInstanceOf<List<Assignment>?>());
+      expect(_assignments.data?.length, 1);
 
-      expect(_assignments.links, isInstanceOf<Links>());
+      expect(_assignments.links, isInstanceOf<Links?>());
     });
 
     test('AssignmentTest', () {
@@ -28,9 +28,9 @@ void main() {
       expect(_assignment.type, 'assignment');
       expect(_assignment.attributes, isInstanceOf<AssignmentAttributes>());
       expect(_assignment.projects, isInstanceOf<List<Project>>());
-      expect(_assignment.projects.length, 1);
+      expect(_assignment.projects?.length, 1);
       expect(_assignment.grades, isInstanceOf<List<Grade>>());
-      expect(_assignment.grades.length, 1);
+      expect(_assignment.grades?.length, 1);
 
       expect(_assignment.canBeGraded, true);
       expect(_assignment.gradingScaleHint,
@@ -48,7 +48,7 @@ void main() {
           DateTime.parse('2020-08-15T15:23:00.000Z').toLocal());
       expect(_assignmentAttributes.description, 'description');
       expect(_assignmentAttributes.status, 'open');
-      expect(_assignmentAttributes.hasMentorAccess, true);
+      expect(_assignmentAttributes.hasPrimaryMentorAccess, true);
       expect(_assignmentAttributes.createdAt,
           DateTime.parse('2020-08-19T15:00:30.423Z').toLocal());
       expect(_assignmentAttributes.updatedAt,

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 class ContributeSupportCard extends StatelessWidget {
+  const ContributeSupportCard({
+    Key? key,
+    required this.imagePath,
+    required this.title,
+    required this.cardDescriptionList,
+  }) : super(key: key);
+
   final String imagePath;
   final String title;
   final List<String> cardDescriptionList;
-
-  const ContributeSupportCard({
-    Key key,
-    this.imagePath,
-    this.title,
-    this.cardDescriptionList,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class ContributeSupportCard extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 title,
-                style: Theme.of(context).textTheme.headline5.copyWith(
+                style: Theme.of(context).textTheme.headline5?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),

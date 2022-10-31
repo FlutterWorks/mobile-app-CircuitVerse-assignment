@@ -1,13 +1,12 @@
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:html_editor/html_editor.dart';
 import 'package:mobile_app/locator.dart';
 import 'package:mobile_app/models/assignments.dart';
 import 'package:mobile_app/models/dialog_models.dart';
 import 'package:mobile_app/services/dialog_service.dart';
+import 'package:mobile_app/ui/components/cv_html_editor.dart';
 import 'package:mobile_app/ui/components/cv_primary_button.dart';
 import 'package:mobile_app/ui/components/cv_text_field.dart';
 import 'package:mobile_app/ui/views/groups/update_assignment_view.dart';
@@ -17,11 +16,11 @@ import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../setup/test_data/mock_assignments.dart';
-import '../../setup/test_helpers.dart';
+import '../../setup/test_helpers.mocks.dart';
 
 void main() {
   group('UpdateAssignmentViewTest -', () {
-    NavigatorObserver mockObserver;
+    late MockNavigatorObserver mockObserver;
 
     setUpAll(() async {
       SharedPreferences.setMockInitialValues({});
@@ -29,7 +28,7 @@ void main() {
       locator.allowReassignment = true;
     });
 
-    setUp(() => mockObserver = NavigatorObserverMock());
+    setUp(() => mockObserver = MockNavigatorObserver());
 
     Future<void> _pumpUpdateAssignmentView(WidgetTester tester) async {
       var _assignment = Assignment.fromJson(mockAssignment);
@@ -56,10 +55,10 @@ void main() {
       expect(find.byWidgetPredicate((widget) {
         if (widget is CVTextField) {
           return widget.label == 'Name';
-        } else if (widget is HtmlEditor) {
+        } else if (widget is CVHtmlEditor) {
           return true;
         } else if (widget is DateTimeField) {
-          return widget.key == Key('cv_assignment_deadline_field');
+          return widget.key == const Key('cv_assignment_deadline_field');
         } else if (widget is CheckboxListTile) {
           return true;
         }
@@ -90,6 +89,8 @@ void main() {
       locator.registerSingleton<UpdateAssignmentViewModel>(
           _updateAssignmentViewModel);
 
+      when(_updateAssignmentViewModel.UPDATE_ASSIGNMENT)
+          .thenAnswer((_) => 'update_assignment');
       when(_updateAssignmentViewModel.updateAssignment(any, any, any, any, any))
           .thenReturn(null);
       when(_updateAssignmentViewModel.isSuccess(any)).thenReturn(false);
@@ -104,12 +105,11 @@ void main() {
           find.byWidgetPredicate(
               (widget) => widget is CVTextField && widget.label == 'Name'),
           'Test');
-      CVPrimaryButton widget =
-          find.byType(CVPrimaryButton).evaluate().first.widget;
-      widget.onPressed();
+      Widget widget = find.byType(CVPrimaryButton).evaluate().first.widget;
+      (widget as CVPrimaryButton).onPressed!();
       await tester.pumpAndSettle();
 
-      await tester.pump(Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 5));
 
       // Verify Dialog Service is called to show Dialog of Updating
       verify(_dialogService.showCustomProgressDialog(title: anyNamed('title')))

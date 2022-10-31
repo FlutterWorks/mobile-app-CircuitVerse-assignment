@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 class CVTheme {
   CVTheme._();
+
   static Color textFieldLabelColor(context) {
     return Theme.of(context).brightness == Brightness.dark
-        ? Colors.grey[300]
-        : Colors.grey[600];
+        ? Colors.grey[300]!
+        : Colors.grey[600]!;
   }
 
   static Color textColor(context) {
@@ -52,9 +53,12 @@ class CVTheme {
 
   static ThemeData themeData(context) {
     return ThemeData(
-        accentColor: CVTheme.primaryColor,
-        primaryColor: CVTheme.primaryColor,
-        brightness: Theme.of(context).brightness);
+      brightness: Theme.of(context).brightness,
+      colorScheme: ThemeData().colorScheme.copyWith(
+            brightness: Theme.of(context).brightness,
+            primary: CVTheme.secondaryColor,
+          ),
+    );
   }
 
   static const Color primaryColor = Color.fromRGBO(66, 185, 131, 1);
@@ -70,6 +74,7 @@ class CVTheme {
   static const Color bgCard = Color.fromRGBO(255, 255, 255, 0.9);
   static const Color bgCardDark = Color.fromRGBO(97, 97, 97, 1);
   static const Color htmlEditorBg = Color.fromRGBO(245, 245, 245, 1);
+
   static const OutlineInputBorder primaryDarkOutlineBorder = OutlineInputBorder(
     borderRadius: BorderRadius.zero,
     borderSide: BorderSide(color: CVTheme.primaryColorDark),

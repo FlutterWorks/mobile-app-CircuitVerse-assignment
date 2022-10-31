@@ -5,13 +5,16 @@ import 'package:mobile_app/models/projects.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class ProjectCard extends StatefulWidget {
+  const ProjectCard({
+    Key? key,
+    required this.project,
+    required this.onPressed,
+    this.isHeaderFilled = true,
+  }) : super(key: key);
+
   final Project project;
   final VoidCallback onPressed;
   final bool isHeaderFilled;
-
-  const ProjectCard(
-      {Key key, this.project, this.onPressed, this.isHeaderFilled = true})
-      : super(key: key);
 
   @override
   _ProjectCardState createState() => _ProjectCardState();
@@ -22,7 +25,7 @@ class _ProjectCardState extends State<ProjectCard> {
     return Chip(
       label: Text(title),
       backgroundColor: Colors.black,
-      labelStyle: Theme.of(context).textTheme.bodyText1.copyWith(
+      labelStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
             color: Colors.white,
           ),
     );
@@ -34,13 +37,13 @@ class _ProjectCardState extends State<ProjectCard> {
       decoration: BoxDecoration(
         color:
             widget.isHeaderFilled ? CVTheme.primaryColor : Colors.transparent,
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(4),
           topRight: Radius.circular(4),
         ),
         border: widget.isHeaderFilled
             ? null
-            : Border.fromBorderSide(
+            : const Border.fromBorderSide(
                 BorderSide(color: CVTheme.primaryColor),
               ),
       ),
@@ -53,7 +56,7 @@ class _ProjectCardState extends State<ProjectCard> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headline5.copyWith(
+              style: Theme.of(context).textTheme.headline5?.copyWith(
                     color: Theme.of(context).brightness == Brightness.dark
                         ? widget.isHeaderFilled
                             ? Colors.black
@@ -64,7 +67,7 @@ class _ProjectCardState extends State<ProjectCard> {
                   ),
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           _buildHeaderChip(widget.project.attributes.projectAccessType)
         ],
       ),
@@ -75,13 +78,13 @@ class _ProjectCardState extends State<ProjectCard> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: CVTheme.primaryColor),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(4),
           bottomRight: Radius.circular(4),
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(4),
           bottomRight: Radius.circular(4),
         ),
@@ -90,8 +93,9 @@ class _ProjectCardState extends State<ProjectCard> {
           child: FadeInImage.memoryNetwork(
             fit: BoxFit.cover,
             placeholder: kTransparentImage,
-            image:
-                '${EnvironmentConfig.CV_API_BASE_URL.substring(0, EnvironmentConfig.CV_API_BASE_URL.length - 7) + widget.project.attributes.imagePreview.url}',
+            image: EnvironmentConfig.CV_API_BASE_URL.substring(
+                    0, EnvironmentConfig.CV_API_BASE_URL.length - 7) +
+                widget.project.attributes.imagePreview.url,
           ),
         ),
       ),

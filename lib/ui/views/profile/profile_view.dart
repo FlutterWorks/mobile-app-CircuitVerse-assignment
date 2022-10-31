@@ -1,44 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mobile_app/config/environment_config.dart';
 import 'package:mobile_app/cv_theme.dart';
-import 'package:mobile_app/locator.dart';
 import 'package:mobile_app/models/user.dart';
-import 'package:mobile_app/services/local_storage_service.dart';
 import 'package:mobile_app/ui/components/cv_tab_bar.dart';
 import 'package:mobile_app/ui/views/base_view.dart';
 import 'package:mobile_app/ui/views/profile/user_favourites_view.dart';
 import 'package:mobile_app/ui/views/profile/user_projects_view.dart';
 import 'package:mobile_app/ui/views/profile/edit_profile_view.dart';
+import 'package:mobile_app/viewmodels/cv_landing_viewmodel.dart';
 import 'package:mobile_app/viewmodels/profile/profile_viewmodel.dart';
+import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ProfileView extends StatefulWidget {
-  static const String id = 'profile_view';
-  final String userId;
+  const ProfileView({Key? key, this.userId}) : super(key: key);
 
-  const ProfileView({Key key, this.userId}) : super(key: key);
+  static const String id = 'profile_view';
+  final String? userId;
 
   @override
   _ProfileViewState createState() => _ProfileViewState();
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  ProfileViewModel _model;
-  String userId;
-
-  @override
-  void initState() {
-    super.initState();
-    userId =
-        widget.userId ?? locator<LocalStorageService>().currentUser.data.id;
-  }
+  late ProfileViewModel _model;
 
   Widget _buildProfileImage() {
-    return Padding(
+    final imageURL = EnvironmentConfig.CV_BASE_URL +
+        (_model.user?.data.attributes.profilePicture ?? 'Default');
+    return Container(
+      key: const Key('profile_image'),
+      height: 80,
+      width: 80,
       padding: const EdgeInsets.all(8),
-      child: Image.asset(
-        'assets/images/profile/profile_default.png',
-        width: 80,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          image: imageURL.toLowerCase().contains('default')
+              ? const AssetImage('assets/images/profile/default_icon.jpg')
+              : NetworkImage(imageURL) as ImageProvider,
+        ),
       ),
     );
   }
@@ -47,18 +49,18 @@ class _ProfileViewState extends State<ProfileView> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
-        _model?.user?.data?.attributes?.name ?? 'N.A',
+        _model.user?.data.attributes.name ?? 'N.A',
         textAlign: TextAlign.center,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.subtitle1.copyWith(
+        style: Theme.of(context).textTheme.subtitle1?.copyWith(
               fontWeight: FontWeight.bold,
             ),
       ),
     );
   }
 
-  Widget _buildProfileComponent(String title, String description) {
+  Widget _buildProfileComponent(String title, String? description) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4),
       alignment: Alignment.centerLeft,
@@ -68,7 +70,7 @@ class _ProfileViewState extends State<ProfileView> {
           children: <TextSpan>[
             TextSpan(
               text: '$title : ',
-              style: Theme.of(context).textTheme.bodyText1.copyWith(
+              style: Theme.of(context).textTheme.bodyText1?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
@@ -82,22 +84,24 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Widget _buildEditProfileButton() {
-    var _localStorageService = locator<LocalStorageService>();
-    if (_localStorageService.isLoggedIn &&
-        userId == _localStorageService.currentUser.data.id) {
-      return FlatButton(
-        color: CVTheme.primaryColor,
+    if (_model.isLoggedIn && _model.isPersonalProfile) {
+      return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: CVTheme.primaryColor,
+        ),
         onPressed: () async {
-          var _updatedUser = await Get.toNamed(EditProfileView.id);
-          if (_updatedUser is User) {
-            setState(() {
-              _model.user = _updatedUser;
-            });
-          }
+          await Get.toNamed(EditProfileView.id)?.then((_updatedUser) {
+            if (_updatedUser is User) {
+              setState(() {
+                _model.user = _updatedUser;
+              });
+            }
+            context.read<CVLandingViewModel>().onProfileUpdated();
+          });
         },
         child: Text(
           'Edit Profile',
-          style: Theme.of(context).textTheme.bodyText1.copyWith(
+          style: Theme.of(context).textTheme.bodyText1?.copyWith(
                 color: Colors.white,
               ),
         ),
@@ -108,11 +112,11 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Widget _buildProfileCard() {
-    var _attrs = _model?.user?.data?.attributes;
+    var _attrs = _model.user?.data.attributes;
 
     return Card(
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: CVTheme.lightGrey),
+        side: const BorderSide(color: CVTheme.lightGrey),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Padding(
@@ -136,7 +140,7 @@ class _ProfileViewState extends State<ProfileView> {
                   _buildProfileComponent(
                     'Joined',
                     _attrs?.createdAt != null
-                        ? timeago.format(_attrs.createdAt)
+                        ? timeago.format(_attrs!.createdAt!)
                         : null,
                   ),
                   _buildProfileComponent(
@@ -147,10 +151,11 @@ class _ProfileViewState extends State<ProfileView> {
                     'Educational Institute',
                     _attrs?.educationalInstitute,
                   ),
-                  _buildProfileComponent(
-                    'Subscribed to mails',
-                    _attrs?.subscribed.toString(),
-                  ),
+                  if (_model.isLoggedIn && _model.isPersonalProfile)
+                    _buildProfileComponent(
+                      'Subscribed to mails',
+                      _attrs?.subscribed.toString(),
+                    ),
                   _buildEditProfileButton()
                 ],
               ),
@@ -162,10 +167,11 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Widget _buildProjectsTabBar() {
+    if (_model.userId == null) return Container();
     return Expanded(
       child: Card(
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: CVTheme.lightGrey),
+          side: const BorderSide(color: CVTheme.lightGrey),
           borderRadius: BorderRadius.circular(4),
         ),
         child: DefaultTabController(
@@ -173,7 +179,7 @@ class _ProfileViewState extends State<ProfileView> {
           child: Scaffold(
             appBar: CVTabBar(
               color: CVTheme.lightGrey.withOpacity(0.2),
-              tabBar: TabBar(
+              tabBar: const TabBar(
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.black87,
                 indicatorSize: TabBarIndicatorSize.tab,
@@ -189,8 +195,8 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             body: TabBarView(
               children: [
-                UserProjectsView(userId: userId),
-                UserFavouritesView(userId: userId),
+                UserProjectsView(userId: _model.userId!),
+                UserFavouritesView(userId: _model.userId!),
               ],
             ),
           ),
@@ -204,12 +210,13 @@ class _ProfileViewState extends State<ProfileView> {
     return BaseView<ProfileViewModel>(
       onModelReady: (model) {
         _model = model;
-        _model.fetchUserProfile(userId);
+        _model.userId = widget.userId;
+        _model.fetchUserProfile();
       },
       builder: (context, model, child) => Scaffold(
         appBar: widget.userId != null
             ? AppBar(
-                title: Text('Profile'),
+                title: const Text('Profile'),
                 centerTitle: true,
               )
             : null,
@@ -218,7 +225,7 @@ class _ProfileViewState extends State<ProfileView> {
           child: Column(
             children: <Widget>[
               _buildProfileCard(),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               _buildProjectsTabBar(),
             ],
           ),

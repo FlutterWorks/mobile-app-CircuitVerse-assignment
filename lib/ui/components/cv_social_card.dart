@@ -3,24 +3,24 @@ import 'package:mobile_app/cv_theme.dart';
 import 'package:mobile_app/utils/url_launcher.dart';
 
 class CircuitVerseSocialCard extends StatelessWidget {
+  const CircuitVerseSocialCard({
+    required this.imagePath,
+    required this.title,
+    required this.description,
+    required this.url,
+    Key? key,
+  }) : super(key: key);
+
   final String imagePath;
   final String title;
   final String description;
   final String url;
 
-  const CircuitVerseSocialCard({
-    Key key,
-    this.imagePath,
-    this.title,
-    this.description,
-    this.url,
-  }) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        await launchURL(url);
+        launchURL(url);
       },
       child: Card(
         color: Theme.of(context).brightness == Brightness.dark
@@ -32,7 +32,7 @@ class CircuitVerseSocialCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               Image.asset(imagePath, width: 48),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +41,7 @@ class CircuitVerseSocialCard extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.subtitle1.copyWith(
+                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: CVTheme.textColor(context),
                           ),

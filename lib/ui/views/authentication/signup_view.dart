@@ -13,6 +13,8 @@ import 'package:mobile_app/utils/validators.dart';
 import 'package:mobile_app/viewmodels/authentication/signup_viewmodel.dart';
 
 class SignupView extends StatefulWidget {
+  const SignupView({Key? key}) : super(key: key);
+
   static const String id = 'signup_view';
 
   @override
@@ -20,9 +22,9 @@ class SignupView extends StatefulWidget {
 }
 
 class _SignupViewState extends State<SignupView> {
-  SignupViewModel _signUpModel;
+  late SignupViewModel _signUpModel;
   final _formKey = GlobalKey<FormState>();
-  String _name, _email, _password;
+  late String _name, _email, _password;
 
   final _nameFocusNode = FocusNode();
   final _emailFocusNode = FocusNode();
@@ -37,6 +39,9 @@ class _SignupViewState extends State<SignupView> {
   Widget _buildSignUpImage() {
     return Container(
       width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height > 800
+          ? MediaQuery.of(context).size.height * 0.52
+          : MediaQuery.of(context).size.height * 0.43,
       color: CVTheme.imageBackground,
       padding: const EdgeInsets.all(16),
       child: SafeArea(
@@ -51,8 +56,9 @@ class _SignupViewState extends State<SignupView> {
   Widget _buildNameInput() {
     return CVTextField(
       label: 'Name',
-      validator: (value) => value.isEmpty ? 'Name can\'t be empty' : null,
-      onSaved: (value) => _name = value.trim(),
+      validator: (value) =>
+          value?.isEmpty ?? true ? 'Name can\'t be empty' : null,
+      onSaved: (value) => _name = value!.trim(),
       onFieldSubmitted: (_) =>
           FocusScope.of(context).requestFocus(_nameFocusNode),
     );
@@ -65,7 +71,7 @@ class _SignupViewState extends State<SignupView> {
       type: TextInputType.emailAddress,
       validator: (value) =>
           Validators.isEmailValid(value) ? null : 'Please enter a valid email',
-      onSaved: (value) => _email = value.trim(),
+      onSaved: (value) => _email = value!.trim(),
       onFieldSubmitted: (_) {
         _nameFocusNode.unfocus();
         FocusScope.of(context).requestFocus(_emailFocusNode);
@@ -76,8 +82,15 @@ class _SignupViewState extends State<SignupView> {
   Widget _buildPasswordInput() {
     return CVPasswordField(
       focusNode: _emailFocusNode,
-      validator: (value) => value.isEmpty ? 'Password can\'t be empty' : null,
-      onSaved: (value) => _password = value.trim(),
+      validator: (value) {
+        if (value!.isEmpty) {
+          return "Password can't be empty";
+        } else if (value.length < 6) {
+          return "Password length should be at least 6";
+        }
+        return null;
+      },
+      onSaved: (value) => _password = value!.trim(),
     );
   }
 
@@ -106,6 +119,7 @@ class _SignupViewState extends State<SignupView> {
               text: 'Login',
               style: TextStyle(
                 color: CVTheme.highlightText(context),
+                fontSize: 16,
               ),
             ),
           ],
@@ -123,18 +137,23 @@ class _SignupViewState extends State<SignupView> {
 
       if (_signUpModel.isSuccess(_signUpModel.SIGNUP)) {
         // show signup successful snackbar..
-        SnackBarUtils.showDark('Signup Successful');
+        SnackBarUtils.showDark(
+          'Signup Successful',
+          'Welcome to CircuitVerse!',
+        );
 
         // move to home view on successful signup..
         await Future.delayed(
-          Duration(seconds: 1),
+          const Duration(seconds: 1),
         );
         await Get.offAllNamed(CVLandingView.id);
       } else if (_signUpModel.isError(_signUpModel.SIGNUP)) {
         // show failure snackbar..
         SnackBarUtils.showDark(
-            _signUpModel.errorMessageFor(_signUpModel.SIGNUP));
-        _formKey.currentState.reset();
+          'Error',
+          _signUpModel.errorMessageFor(_signUpModel.SIGNUP),
+        );
+        _formKey.currentState?.reset();
       }
     }
   }
@@ -150,16 +169,16 @@ class _SignupViewState extends State<SignupView> {
             child: Column(
               children: <Widget>[
                 _buildSignUpImage(),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _buildNameInput(),
                 _buildEmailInput(),
                 _buildPasswordInput(),
-                SizedBox(height: 16),
+                const SizedBox(height: 14),
                 _buildRegisterButton(),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _buildAlreadyRegisteredComponent(),
-                SizedBox(height: 32),
-                AuthOptionsView(isSignUp: true),
+                const SizedBox(height: 20),
+                const AuthOptionsView(isSignUp: true),
               ],
             ),
           ),

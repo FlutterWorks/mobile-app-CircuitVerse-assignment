@@ -39,7 +39,7 @@ void main() {
 
         // verify project data is populated..
         expect(_model.project, _project);
-        expect(_model.collaborators, _project.collaborators);
+        expect(_model.collaborators, _project.collaborators ?? []);
       });
 
       test('When called & service returns error', () async {
@@ -176,6 +176,7 @@ void main() {
             .thenAnswer((_) => Future.value('Starred'));
 
         var _model = ProjectDetailsViewModel();
+        _model.receivedProject = Project.fromJson(mockProject);
         await _model.toggleStarForProject('1');
 
         // verify API call is made..
@@ -192,6 +193,7 @@ void main() {
             .thenAnswer((_) => Future.value('Unstarred'));
 
         var _model = ProjectDetailsViewModel();
+        _model.receivedProject = Project.fromJson(mockProject);
         await _model.toggleStarForProject('1');
 
         // verify API call is made..

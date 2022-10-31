@@ -7,26 +7,29 @@ import 'package:mobile_app/ui/views/startup_view.dart';
 import 'package:mobile_app/utils/router.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import '../../setup/test_helpers.dart';
+import '../../setup/test_helpers.mocks.dart';
 
 void main() {
   group('StartupViewTest -', () {
-    NavigatorObserver mockObserver;
+    late MockNavigatorObserver mockObserver;
 
     setUpAll(() async {
       SharedPreferences.setMockInitialValues({});
       await setupLocator();
     });
 
-    setUp(() => mockObserver = NavigatorObserverMock());
+    setUp(() => mockObserver = MockNavigatorObserver());
 
     Future<void> _pumpStartUpView(WidgetTester tester) async {
       await tester.pumpWidget(
         GetMaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          locale: const Locale('en'),
           onGenerateRoute: CVRouter.generateRoute,
           navigatorObservers: [mockObserver],
-          home: StartUpView(),
+          home: const StartUpView(),
         ),
       );
 
@@ -39,14 +42,14 @@ void main() {
         (WidgetTester tester) async {
       await _pumpStartUpView(tester);
 
-      expect(find.byKey(Key('cv_startup_logo')), findsOneWidget);
-      await tester.pumpAndSettle(Duration(seconds: 1));
+      expect(find.byKey(const Key('cv_startup_logo')), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
     });
 
     testWidgets('HomeView is pushed over StartUpView after 1 second',
         (WidgetTester tester) async {
       await _pumpStartUpView(tester);
-      await tester.pumpAndSettle(Duration(seconds: 1));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
 
       verify(mockObserver.didPush(any, any));
       expect(find.byType(CVLandingView), findsOneWidget);

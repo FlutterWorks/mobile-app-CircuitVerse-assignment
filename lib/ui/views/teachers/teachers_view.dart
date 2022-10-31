@@ -4,10 +4,10 @@ import 'package:mobile_app/ui/components/cv_subheader.dart';
 import 'package:mobile_app/ui/views/teachers/components/teachers_card.dart';
 
 class TeachersView extends StatelessWidget {
+  const TeachersView({Key? key, this.showAppBar = true}) : super(key: key);
+
   static const String id = 'teachers_view';
   final bool showAppBar;
-
-  const TeachersView({Key key, this.showAppBar = true}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class TeachersView extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          children: <Widget>[
+          children: const <Widget>[
             CVHeader(
               title: 'TEACHERS',
               description:

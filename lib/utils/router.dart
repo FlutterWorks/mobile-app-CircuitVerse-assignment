@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/models/assignments.dart';
 import 'package:mobile_app/models/groups.dart';
@@ -17,34 +16,41 @@ import 'package:mobile_app/ui/views/groups/my_groups_view.dart';
 import 'package:mobile_app/ui/views/groups/new_group_view.dart';
 import 'package:mobile_app/ui/views/groups/update_assignment_view.dart';
 import 'package:mobile_app/ui/views/cv_landing_view.dart';
+import 'package:mobile_app/ui/views/ib/ib_landing_view.dart';
 import 'package:mobile_app/ui/views/profile/edit_profile_view.dart';
 import 'package:mobile_app/ui/views/profile/profile_view.dart';
 import 'package:mobile_app/ui/views/projects/edit_project_view.dart';
 import 'package:mobile_app/ui/views/projects/featured_projects_view.dart';
 import 'package:mobile_app/ui/views/projects/project_details_view.dart';
+import 'package:mobile_app/ui/views/projects/project_preview_fullscreen_view.dart';
+import 'package:mobile_app/ui/views/simulator/simulator_view.dart';
 import 'package:mobile_app/ui/views/teachers/teachers_view.dart';
 
 class CVRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case SignupView.id:
-        return MaterialPageRoute(builder: (_) => SignupView());
+        return MaterialPageRoute(builder: (_) => const SignupView());
       case LoginView.id:
-        return MaterialPageRoute(builder: (_) => LoginView());
+        return MaterialPageRoute(builder: (_) => const LoginView());
       case ForgotPasswordView.id:
-        return MaterialPageRoute(builder: (_) => ForgotPasswordView());
+        return MaterialPageRoute(builder: (_) => const ForgotPasswordView());
       case CVLandingView.id:
-        return MaterialPageRoute(builder: (_) => CVLandingView());
+        return MaterialPageRoute(builder: (_) => const CVLandingView());
+      case SimulatorView.id:
+        return MaterialPageRoute(builder: (_) => const SimulatorView());
       case TeachersView.id:
-        return MaterialPageRoute(builder: (_) => TeachersView());
+        return MaterialPageRoute(builder: (_) => const TeachersView());
       case ContributorsView.id:
-        return MaterialPageRoute(builder: (_) => ContributorsView());
+        return MaterialPageRoute(builder: (_) => const ContributorsView());
       case AboutTosView.id:
-        return MaterialPageRoute(builder: (_) => AboutTosView());
+        return MaterialPageRoute(builder: (_) => const AboutTosView());
       case AboutPrivacyPolicyView.id:
-        return MaterialPageRoute(builder: (_) => AboutPrivacyPolicyView());
+        return MaterialPageRoute(
+          builder: (_) => const AboutPrivacyPolicyView(),
+        );
       case FeaturedProjectsView.id:
-        return MaterialPageRoute(builder: (_) => FeaturedProjectsView());
+        return MaterialPageRoute(builder: (_) => const FeaturedProjectsView());
       case ProfileView.id:
         var _userId = settings.arguments as String;
         return MaterialPageRoute(
@@ -53,7 +59,7 @@ class CVRouter {
           ),
         );
       case EditProfileView.id:
-        return MaterialPageRoute(builder: (_) => EditProfileView());
+        return MaterialPageRoute(builder: (_) => const EditProfileView());
       case ProjectDetailsView.id:
         var _project = settings.arguments as Project;
         return MaterialPageRoute(
@@ -69,7 +75,7 @@ class CVRouter {
           ),
         );
       case MyGroupsView.id:
-        return MaterialPageRoute(builder: (_) => MyGroupsView());
+        return MaterialPageRoute(builder: (_) => const MyGroupsView());
       case GroupDetailsView.id:
         var group = settings.arguments as Group;
         return MaterialPageRoute(
@@ -78,7 +84,7 @@ class CVRouter {
           ),
         );
       case NewGroupView.id:
-        return MaterialPageRoute(builder: (_) => NewGroupView());
+        return MaterialPageRoute(builder: (_) => const NewGroupView());
       case EditGroupView.id:
         var group = settings.arguments as Group;
         return MaterialPageRoute(
@@ -105,6 +111,17 @@ class CVRouter {
         return MaterialPageRoute(
           builder: (_) => UpdateAssignmentView(
             assignment: _assignment,
+          ),
+        );
+      case IbLandingView.id:
+        return MaterialPageRoute(
+          builder: (_) => const IbLandingView(),
+        );
+      case ProjectPreviewFullScreen.id:
+        var _project = settings.arguments as Project;
+        return MaterialPageRoute(
+          builder: (_) => ProjectPreviewFullScreen(
+            project: _project,
           ),
         );
       default:

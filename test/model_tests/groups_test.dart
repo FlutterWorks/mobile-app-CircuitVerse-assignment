@@ -27,10 +27,10 @@ void main() {
       expect(_group.id, '1');
       expect(_group.type, 'group');
       expect(_group.attributes, isInstanceOf<GroupAttributes>());
-      expect(_group.groupMembers, isInstanceOf<List<GroupMember>>());
-      expect(_group.groupMembers.length, 1);
-      expect(_group.assignments, isInstanceOf<List<Assignment>>());
-      expect(_group.assignments.length, 1);
+      expect(_group.groupMembers, isInstanceOf<List<GroupMember>?>());
+      expect(_group.groupMembers?.length, 1);
+      expect(_group.assignments, isInstanceOf<List<Assignment>?>());
+      expect(_group.assignments?.length, 1);
     });
 
     test('GroupAttributesTest fromJson', () {
@@ -39,9 +39,9 @@ void main() {
       expect(_groupAttributes, isInstanceOf<GroupAttributes>());
 
       expect(_groupAttributes.memberCount, 1);
-      expect(_groupAttributes.mentorName, 'Test User');
+      expect(_groupAttributes.primaryMentorName, 'Test User');
       expect(_groupAttributes.name, 'Test Group');
-      expect(_groupAttributes.mentorId, 1);
+      expect(_groupAttributes.primaryMentorId, 1);
       expect(_groupAttributes.createdAt,
           DateTime.parse('2020-08-15T05:49:56.433Z'));
       expect(_groupAttributes.updatedAt,

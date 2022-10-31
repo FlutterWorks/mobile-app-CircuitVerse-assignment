@@ -1,11 +1,10 @@
 class User {
-  User({this.data});
-
-  Data data;
-
   factory User.fromJson(Map<String, dynamic> json) => User(
         data: Data.fromJson(json['data']),
       );
+
+  User({required this.data});
+  Data data;
 
   Map<String, dynamic> toJson() => {
         'data': data.toJson(),
@@ -13,21 +12,20 @@ class User {
 }
 
 class Data {
-  Data({
-    this.id,
-    this.type,
-    this.attributes,
-  });
-
-  String id;
-  String type;
-  UserAttributes attributes;
-
   factory Data.fromJson(Map<String, dynamic> json) => Data(
         id: json['id'],
         type: json['type'],
         attributes: UserAttributes.fromJson(json['attributes']),
       );
+
+  Data({
+    required this.id,
+    required this.type,
+    required this.attributes,
+  });
+  String id;
+  String? type;
+  UserAttributes attributes;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -37,26 +35,6 @@ class Data {
 }
 
 class UserAttributes {
-  UserAttributes({
-    this.name,
-    this.email,
-    this.subscribed,
-    this.createdAt,
-    this.updatedAt,
-    this.admin,
-    this.country,
-    this.educationalInstitute,
-  });
-
-  String name;
-  String email;
-  bool subscribed;
-  DateTime createdAt;
-  DateTime updatedAt;
-  bool admin;
-  dynamic country;
-  dynamic educationalInstitute;
-
   factory UserAttributes.fromJson(Map<String, dynamic> json) => UserAttributes(
         name: json['name'],
         email: json['email'],
@@ -69,8 +47,30 @@ class UserAttributes {
             : null,
         admin: json['admin'],
         country: json['country'],
+        profilePicture: json['profile_picture'],
         educationalInstitute: json['educational_institute'],
       );
+
+  UserAttributes({
+    this.name,
+    required this.email,
+    required this.subscribed,
+    this.createdAt,
+    this.updatedAt,
+    required this.admin,
+    this.country,
+    this.profilePicture,
+    this.educationalInstitute,
+  });
+  String? name;
+  String? email;
+  bool subscribed;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  String? profilePicture;
+  bool admin;
+  dynamic country;
+  dynamic educationalInstitute;
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -80,6 +80,7 @@ class UserAttributes {
         'updated_at': updatedAt?.toIso8601String(),
         'admin': admin,
         'country': country,
+        'profile_picture': profilePicture,
         'educational_institute': educationalInstitute,
       };
 }

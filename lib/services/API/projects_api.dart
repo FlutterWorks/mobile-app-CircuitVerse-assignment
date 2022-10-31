@@ -6,58 +6,64 @@ import 'package:mobile_app/utils/api_utils.dart';
 import 'package:mobile_app/utils/app_exceptions.dart';
 
 abstract class ProjectsApi {
-  Future<Projects> getPublicProjects({
+  Future<Projects>? getPublicProjects({
     int page = 1,
     String filterByTag,
     String sortBy,
   });
 
-  Future<Projects> getUserProjects(
+  Future<Projects>? getUserProjects(
     String userId, {
     int page = 1,
     String filterByTag,
     String sortBy,
   });
 
-  Future<Projects> getFeaturedProjects({
+  Future<Projects>? getFeaturedProjects({
     int page = 1,
     int size = 5,
     String filterByTag,
     String sortBy,
   });
 
-  Future<Projects> getUserFavourites(
+  Future<Projects>? getUserFavourites(
     String userId, {
     int page = 1,
     String filterByTag,
     String sortBy,
   });
 
-  Future<Project> getProjectDetails(String id);
-
-  Future<Project> updateProject(
-    String id, {
-    String name,
-    String projectAccessType,
-    String description,
-    List<String> tagsList,
+  Future<Projects>? searchProjects(
+    String query, {
+    int page = 1,
+    int size = 5,
   });
 
-  Future<bool> deleteProject(String projectId);
+  Future<Project>? getProjectDetails(String id);
 
-  Future<String> toggleStarProject(String projectId);
+  Future<Project>? updateProject(
+    String id, {
+    required String name,
+    required String projectAccessType,
+    required String description,
+    required List<String> tagsList,
+  });
 
-  Future<Project> forkProject(String toBeForkedProjectId);
+  Future<bool>? deleteProject(String projectId);
+
+  Future<String>? toggleStarProject(String projectId);
+
+  Future<Project>? forkProject(String toBeForkedProjectId);
 }
 
 class HttpProjectsApi implements ProjectsApi {
   var headers = {'Content-Type': 'application/json'};
 
   @override
-  Future<Projects> getPublicProjects({
+  Future<Projects>? getPublicProjects({
     int page = 1,
-    String filterByTag,
-    String sortBy,
+    String? filterByTag,
+    String? sortBy,
   }) async {
     var endpoint = '/projects?page[number]=$page';
     if (filterByTag != null) endpoint += '&filter[tag]=$filterByTag';
@@ -69,19 +75,18 @@ class HttpProjectsApi implements ProjectsApi {
         uri,
         headers: headers,
       );
-      var projects = Projects.fromJson(jsonResponse);
-      return projects;
+      return Projects.fromJson(jsonResponse);
     } on Exception {
       throw Failure(Constants.GENERIC_FAILURE);
     }
   }
 
   @override
-  Future<Projects> getUserProjects(
+  Future<Projects>? getUserProjects(
     String userId, {
     int page = 1,
-    String filterByTag,
-    String sortBy,
+    String? filterByTag,
+    String? sortBy,
   }) async {
     var endpoint = '/users/$userId/projects?page[number]=$page';
     if (filterByTag != null) endpoint += '&filter[tag]=$filterByTag';
@@ -94,8 +99,7 @@ class HttpProjectsApi implements ProjectsApi {
         uri,
         headers: headers,
       );
-      var projects = Projects.fromJson(jsonResponse);
-      return projects;
+      return Projects.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHENTICATED);
     } on NotFoundException {
@@ -106,11 +110,11 @@ class HttpProjectsApi implements ProjectsApi {
   }
 
   @override
-  Future<Projects> getFeaturedProjects({
+  Future<Projects>? getFeaturedProjects({
     int page = 1,
     int size = 5,
-    String filterByTag,
-    String sortBy,
+    String? filterByTag,
+    String? sortBy,
   }) async {
     var endpoint = '/projects/featured?page[number]=$page&page[size]=$size';
     if (filterByTag != null) endpoint += '&filter[tag]=$filterByTag';
@@ -123,8 +127,7 @@ class HttpProjectsApi implements ProjectsApi {
         uri,
         headers: headers,
       );
-      var projects = Projects.fromJson(jsonResponse);
-      return projects;
+      return Projects.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHENTICATED);
     } on Exception {
@@ -133,11 +136,11 @@ class HttpProjectsApi implements ProjectsApi {
   }
 
   @override
-  Future<Projects> getUserFavourites(
+  Future<Projects>? getUserFavourites(
     String userId, {
     int page = 1,
-    String filterByTag,
-    String sortBy,
+    String? filterByTag,
+    String? sortBy,
   }) async {
     var endpoint = '/users/$userId/favourites?page[number]=$page';
     if (filterByTag != null) endpoint += '&filter[tag]=$filterByTag';
@@ -150,8 +153,7 @@ class HttpProjectsApi implements ProjectsApi {
         uri,
         headers: headers,
       );
-      var projects = Projects.fromJson(jsonResponse);
-      return projects;
+      return Projects.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHENTICATED);
     } on Exception {
@@ -160,7 +162,7 @@ class HttpProjectsApi implements ProjectsApi {
   }
 
   @override
-  Future<Project> getProjectDetails(String id) async {
+  Future<Project>? getProjectDetails(String id) async {
     var endpoint = '/projects/$id?include=collaborators';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
@@ -170,8 +172,7 @@ class HttpProjectsApi implements ProjectsApi {
         uri,
         headers: headers,
       );
-      var project = Project.fromJson(jsonResponse);
-      return project;
+      return Project.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHENTICATED);
     } on ForbiddenException {
@@ -184,12 +185,36 @@ class HttpProjectsApi implements ProjectsApi {
   }
 
   @override
-  Future<Project> updateProject(
+  Future<Projects>? searchProjects(
+    String query, {
+    int page = 1,
+    int size = 5,
+  }) async {
+    var endpoint =
+        '/projects/search?q=$query&page[number]=$page&page[size]=$size';
+    var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
+
+    try {
+      ApiUtils.addTokenToHeaders(headers);
+      var jsonResponse = await ApiUtils.get(
+        uri,
+        headers: headers,
+      );
+      return Projects.fromJson(jsonResponse);
+    } on UnauthorizedException {
+      throw Failure(Constants.UNAUTHENTICATED);
+    } on Exception {
+      throw Failure(Constants.GENERIC_FAILURE);
+    }
+  }
+
+  @override
+  Future<Project>? updateProject(
     String id, {
-    String name,
-    String projectAccessType,
-    String description,
-    List<String> tagsList,
+    required String name,
+    required String projectAccessType,
+    required String description,
+    required List<String> tagsList,
   }) async {
     var endpoint = '/projects/$id';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
@@ -207,8 +232,7 @@ class HttpProjectsApi implements ProjectsApi {
         headers: headers,
         body: json,
       );
-      var project = Project.fromJson(jsonResponse['data']);
-      return project;
+      return Project.fromJson(jsonResponse['data']);
     } on BadRequestException {
       throw Failure(Constants.INVALID_PARAMETERS);
     } on UnauthorizedException {
@@ -223,7 +247,7 @@ class HttpProjectsApi implements ProjectsApi {
   }
 
   @override
-  Future<bool> deleteProject(String projectId) async {
+  Future<bool>? deleteProject(String projectId) async {
     var endpoint = '/projects/$projectId';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
@@ -246,7 +270,7 @@ class HttpProjectsApi implements ProjectsApi {
   }
 
   @override
-  Future<String> toggleStarProject(String projectId) async {
+  Future<String>? toggleStarProject(String projectId) async {
     var endpoint = '/projects/$projectId/toggle-star';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
@@ -267,7 +291,7 @@ class HttpProjectsApi implements ProjectsApi {
   }
 
   @override
-  Future<Project> forkProject(String toBeForkedProjectId) async {
+  Future<Project>? forkProject(String toBeForkedProjectId) async {
     var endpoint = '/projects/$toBeForkedProjectId/fork';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
@@ -277,8 +301,7 @@ class HttpProjectsApi implements ProjectsApi {
         uri,
         headers: headers,
       );
-      var project = Project.fromJson(jsonResponse['data']);
-      return project;
+      return Project.fromJson(jsonResponse['data']);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHENTICATED);
     } on NotFoundException {

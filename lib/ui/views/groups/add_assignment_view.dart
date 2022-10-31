@@ -1,12 +1,13 @@
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_summernote/flutter_summernote.dart';
 import 'package:get/get.dart';
-import 'package:html_editor/html_editor.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_app/cv_theme.dart';
 import 'package:mobile_app/data/restriction_elements.dart';
 import 'package:mobile_app/locator.dart';
 import 'package:mobile_app/services/dialog_service.dart';
+import 'package:mobile_app/ui/components/cv_html_editor.dart';
 import 'package:mobile_app/ui/components/cv_primary_button.dart';
 import 'package:mobile_app/ui/components/cv_text_field.dart';
 import 'package:mobile_app/ui/views/base_view.dart';
@@ -15,10 +16,10 @@ import 'package:mobile_app/utils/validators.dart';
 import 'package:mobile_app/viewmodels/groups/add_assignment_viewmodel.dart';
 
 class AddAssignmentView extends StatefulWidget {
+  const AddAssignmentView({Key? key, required this.groupId}) : super(key: key);
+
   static const String id = 'add_assignment_view';
   final String groupId;
-
-  const AddAssignmentView({Key key, this.groupId}) : super(key: key);
 
   @override
   _AddAssignmentViewState createState() => _AddAssignmentViewState();
@@ -26,11 +27,12 @@ class AddAssignmentView extends StatefulWidget {
 
 class _AddAssignmentViewState extends State<AddAssignmentView> {
   final DialogService _dialogService = locator<DialogService>();
-  AddAssignmentViewModel _model;
+  late AddAssignmentViewModel _model;
   final _formKey = GlobalKey<FormState>();
-  String _name, _gradingScale = 'No Scale';
-  final GlobalKey<HtmlEditorState> _descriptionEditor = GlobalKey();
-  DateTime _deadline;
+  String _gradingScale = 'No Scale';
+  late String _name;
+  final GlobalKey<FlutterSummernoteState> _descriptionEditor = GlobalKey();
+  late DateTime _deadline;
   final List<String> _restrictions = [];
   final List<String> _gradingOptions = [
     'No Scale',
@@ -43,8 +45,9 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
   Widget _buildNameInput() {
     return CVTextField(
       label: 'Name',
-      validator: (name) => name.isEmpty ? 'Please enter a valid name' : null,
-      onSaved: (name) => _name = name.trim(),
+      validator: (name) =>
+          name?.isEmpty ?? true ? 'Please enter a valid name' : null,
+      onSaved: (name) => _name = name!.trim(),
       action: TextInputAction.done,
     );
   }
@@ -55,16 +58,7 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
         horizontal: 16,
         vertical: 8,
       ),
-      child: HtmlEditor(
-        decoration: BoxDecoration(
-          color: CVTheme.htmlEditorBg,
-          border: Border.all(
-            color: CVTheme.primaryColorDark,
-          ),
-        ),
-        key: _descriptionEditor,
-        height: 300,
-      ),
+      child: CVHtmlEditor(editorKey: _descriptionEditor),
     );
   }
 
@@ -72,9 +66,9 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: DateTimeField(
-        key: Key('cv_assignment_deadline_field'),
+        key: const Key('cv_assignment_deadline_field'),
         format: DateFormat('yyyy-MM-dd HH:mm:ss'),
-        initialValue: DateTime.now().add(Duration(days: 7)),
+        initialValue: DateTime.now().add(const Duration(days: 7)),
         decoration: CVTheme.textFieldDecoration.copyWith(
           labelText: 'Deadline',
         ),
@@ -96,7 +90,7 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
             return currentValue;
           }
         },
-        onSaved: (deadline) => _deadline = deadline,
+        onSaved: (deadline) => _deadline = deadline!,
       ),
     );
   }
@@ -105,12 +99,13 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: DropdownButtonFormField<String>(
-        key: Key('cv_assignment_grading_dropdown'),
+        key: const Key('cv_assignment_grading_dropdown'),
         decoration: CVTheme.textFieldDecoration.copyWith(
           labelText: 'Grading Scale',
         ),
         value: _gradingScale,
-        onChanged: (String value) {
+        onChanged: (String? value) {
+          if (value == null) return;
           setState(() {
             _gradingScale = value;
           });
@@ -132,12 +127,13 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
         value: _isRestrictionEnabled,
         title: Text(
           'Elements restriction',
-          style: Theme.of(context).textTheme.headline6.copyWith(
+          style: Theme.of(context).textTheme.headline6?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
         ),
-        subtitle: Text('Enable elements restriction'),
+        subtitle: const Text('Enable elements restriction'),
         onChanged: (value) {
+          if (value == null) return;
           setState(() {
             _isRestrictionEnabled = value;
           });
@@ -153,8 +149,9 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
         Checkbox(
           value: _restrictions.contains(name),
           onChanged: (value) {
+            if (value == null) return;
             if (value) {
-              _restrictions.add((name));
+              _restrictions.add(name);
             } else {
               _restrictions.remove(name);
             }
@@ -174,11 +171,11 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
         children: <Widget>[
           Text(
             title,
-            style: Theme.of(context).textTheme.subtitle1.copyWith(
+            style: Theme.of(context).textTheme.subtitle1?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
-          Divider(),
+          const Divider(),
           Wrap(children: components.map((e) => _buildCheckBox(e)).toList()),
         ],
       ),
@@ -215,12 +212,12 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
       _dialogService.showCustomProgressDialog(title: 'Adding..');
 
       // [ISSUE] [html_editor] Throws error in Tests
-      var _descriptionEditorText;
+      String _descriptionEditorText;
       try {
         _descriptionEditorText =
-            await _descriptionEditor.currentState.getText();
+            await _descriptionEditor.currentState!.getText();
       } on NoSuchMethodError {
-        print(
+        debugPrint(
             'Handled html_editor error. NOTE: This should only throw during tests.');
         _descriptionEditorText = '';
       }
@@ -237,17 +234,23 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
       _dialogService.popDialog();
 
       if (_model.isSuccess(_model.ADD_ASSIGNMENT)) {
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 1));
 
         // returns the added assignment..
         Get.back(result: _model.addedAssignment);
 
         // Show success snackbar..
-        SnackBarUtils.showDark('Assignment Added');
+        SnackBarUtils.showDark(
+          'Assignment Added',
+          'New assignment was successfully added.',
+        );
       } else if (_model.isError(_model.ADD_ASSIGNMENT)) {
         // Show failure snackbar
-        SnackBarUtils.showDark(_model.errorMessageFor(_model.ADD_ASSIGNMENT));
-        _formKey.currentState.reset();
+        SnackBarUtils.showDark(
+          'Error',
+          _model.errorMessageFor(_model.ADD_ASSIGNMENT),
+        );
+        _formKey.currentState?.reset();
       }
     }
   }
@@ -257,7 +260,7 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
     return BaseView<AddAssignmentViewModel>(
       onModelReady: (model) => _model = model,
       builder: (context, model, child) => Scaffold(
-        appBar: AppBar(title: Text('Add Assignment')),
+        appBar: AppBar(title: const Text('Add Assignment')),
         body: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Form(
@@ -270,7 +273,10 @@ class _AddAssignmentViewState extends State<AddAssignmentView> {
                 _buildDeadlineInput(),
                 _buildGradingScaleDropdown(),
                 _buildRestrictionsHeader(),
-                _isRestrictionEnabled ? _buildRestrictions() : Container(),
+                if (_isRestrictionEnabled)
+                  _buildRestrictions()
+                else
+                  Container(),
                 _buildCreateButton(),
               ],
             ),

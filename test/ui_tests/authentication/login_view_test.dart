@@ -13,24 +13,25 @@ import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../setup/test_helpers.dart';
+import '../../setup/test_helpers.mocks.dart';
 
 void main() {
   group('LoginViewTest -', () {
-    NavigatorObserver mockObserver;
+    late MockNavigatorObserver mockObserver;
 
     setUpAll(() async {
       SharedPreferences.setMockInitialValues({});
       await setupLocator();
     });
 
-    setUp(() => mockObserver = NavigatorObserverMock());
+    setUp(() => mockObserver = MockNavigatorObserver());
 
     Future<void> _pumpLoginView(WidgetTester tester) async {
       await tester.pumpWidget(
         GetMaterialApp(
           onGenerateRoute: CVRouter.generateRoute,
           navigatorObservers: [mockObserver],
-          home: LoginView(),
+          home: const LoginView(),
         ),
       );
 
@@ -43,10 +44,11 @@ void main() {
       await _pumpLoginView(tester);
       await tester.pumpAndSettle();
 
-      var _loginImagePredicate =
-          (Widget widget) => widget is Image && widget.height == 300;
+      expect(
+          find.byWidgetPredicate(
+              (Widget widget) => widget is Image && widget.height == 300),
+          findsOneWidget);
 
-      expect(find.byWidgetPredicate(_loginImagePredicate), findsOneWidget);
       expect(find.byType(CVTextField), findsOneWidget);
       expect(find.byType(CVPasswordField), findsOneWidget);
       expect(find.text('Forgot Password?'), findsOneWidget);

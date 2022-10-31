@@ -5,6 +5,7 @@ import 'package:mobile_app/models/failure_model.dart';
 import 'package:mobile_app/models/projects.dart';
 import 'package:mobile_app/services/API/collaborators_api.dart';
 import 'package:mobile_app/services/API/projects_api.dart';
+import 'package:mobile_app/services/local_storage_service.dart';
 import 'package:mobile_app/viewmodels/base_viewmodel.dart';
 
 class ProjectDetailsViewModel extends BaseModel {
@@ -18,12 +19,18 @@ class ProjectDetailsViewModel extends BaseModel {
 
   final ProjectsApi _projectsApi = locator<ProjectsApi>();
   final CollaboratorsApi _collaboratorsApi = locator<CollaboratorsApi>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
 
-  Project _project;
+  bool get isLoggedIn => _localStorageService.isLoggedIn;
 
-  Project get project => _project;
+  Project? receivedProject;
 
-  set project(Project project) {
+  Project? _project;
+
+  Project? get project => _project;
+
+  set project(Project? project) {
     _project = project;
     notifyListeners();
   }
@@ -32,7 +39,8 @@ class ProjectDetailsViewModel extends BaseModel {
 
   List<Collaborator> get collaborators => _collaborators;
 
-  set collaborators(List<Collaborator> collaborators) {
+  set collaborators(List<Collaborator>? collaborators) {
+    if (collaborators == null) return;
     _collaborators = collaborators;
     notifyListeners();
   }
@@ -55,16 +63,16 @@ class ProjectDetailsViewModel extends BaseModel {
     notifyListeners();
   }
 
-  Project _forkedProject;
+  Project? _forkedProject;
 
-  Project get forkedProject => _forkedProject;
+  Project? get forkedProject => _forkedProject;
 
-  set forkedProject(Project forkedProject) {
+  set forkedProject(Project? forkedProject) {
     _forkedProject = forkedProject;
     notifyListeners();
   }
 
-  String _addedCollaboratorsSuccessMessage;
+  late String _addedCollaboratorsSuccessMessage;
 
   String get addedCollaboratorsSuccessMessage =>
       _addedCollaboratorsSuccessMessage;
@@ -75,11 +83,11 @@ class ProjectDetailsViewModel extends BaseModel {
     notifyListeners();
   }
 
-  Future fetchProjectDetails(String projectId) async {
+  Future? fetchProjectDetails(String projectId) async {
     setStateFor(FETCH_PROJECT_DETAILS, ViewState.Busy);
     try {
       project = await _projectsApi.getProjectDetails(projectId);
-      collaborators = _project.collaborators;
+      collaborators = _project?.collaborators;
 
       setStateFor(FETCH_PROJECT_DETAILS, ViewState.Success);
     } on Failure catch (f) {
@@ -94,22 +102,24 @@ class ProjectDetailsViewModel extends BaseModel {
       var addedCollaborators =
           await _collaboratorsApi.addCollaborators(projectId, emails);
 
-      var _addedMembers = addedCollaborators.added.join(', ');
-      var _existingMembers = addedCollaborators.existing.join(', ');
-      var _invalidMembers = addedCollaborators.invalid.join(', ');
+      var _addedMembers = addedCollaborators?.added.join(', ');
+      var _existingMembers = addedCollaborators?.existing.join(', ');
+      var _invalidMembers = addedCollaborators?.invalid.join(', ');
 
-      addedCollaboratorsSuccessMessage = (_addedMembers.isNotEmpty
+      addedCollaboratorsSuccessMessage = (_addedMembers?.isNotEmpty ?? false
               ? '$_addedMembers was/were added '
               : '') +
-          (_existingMembers.isNotEmpty
+          (_existingMembers?.isNotEmpty ?? false
               ? '$_existingMembers is/are existing '
               : '') +
-          (_invalidMembers.isNotEmpty ? '$_invalidMembers is/are invalid' : '');
+          (_invalidMembers?.isNotEmpty ?? false
+              ? '$_invalidMembers is/are invalid'
+              : '');
 
       // Fetch & Update all collaborators..
       var _collaborators =
           await _collaboratorsApi.fetchProjectCollaborators(projectId);
-      collaborators = _collaborators.data;
+      collaborators = _collaborators?.data;
 
       setStateFor(ADD_COLLABORATORS, ViewState.Success);
     } on Failure catch (f) {
@@ -129,7 +139,7 @@ class ProjectDetailsViewModel extends BaseModel {
           .removeWhere((collaborator) => collaborator.id == collaboratorId);
       notifyListeners();
 
-      if (_isDeleted) {
+      if (_isDeleted ?? false) {
         setStateFor(DELETE_COLLABORATORS, ViewState.Success);
       } else {
         setStateFor(DELETE_COLLABORATORS, ViewState.Error);
@@ -158,8 +168,15 @@ class ProjectDetailsViewModel extends BaseModel {
     setStateFor(TOGGLE_STAR, ViewState.Busy);
     try {
       var _toggleMessage = await _projectsApi.toggleStarProject(projectId);
-      isProjectStarred = _toggleMessage.contains('Starred') ? true : false;
+      isProjectStarred = _toggleMessage!.contains('Starred') ? true : false;
       isProjectStarred ? starCount++ : starCount--;
+
+      receivedProject = receivedProject!.copyWith(
+        attributes: receivedProject!.attributes.copyWith(
+          isStarred: isProjectStarred,
+          starsCount: starCount,
+        ),
+      );
 
       setStateFor(TOGGLE_STAR, ViewState.Success);
     } on Failure catch (f) {
@@ -173,7 +190,7 @@ class ProjectDetailsViewModel extends BaseModel {
     try {
       var _isDeleted = await _projectsApi.deleteProject(projectId);
 
-      if (_isDeleted) {
+      if (_isDeleted ?? false) {
         setStateFor(DELETE_PROJECT, ViewState.Success);
       } else {
         setStateFor(DELETE_PROJECT, ViewState.Error);

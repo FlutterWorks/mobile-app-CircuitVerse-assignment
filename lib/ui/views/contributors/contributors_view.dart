@@ -6,10 +6,10 @@ import 'package:mobile_app/ui/views/contributors/components/contributors_donate_
 import 'package:mobile_app/ui/views/contributors/components/contributors_support_card.dart';
 
 class ContributorsView extends StatelessWidget {
+  const ContributorsView({Key? key, this.showAppBar = true}) : super(key: key);
+
   static const String id = 'contributors_view';
   final bool showAppBar;
-
-  const ContributorsView({Key key, this.showAppBar = true}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class ContributorsView extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          children: <Widget>[
+          children: const <Widget>[
             CVHeader(
               title: 'CONTRIBUTE',
               description:
@@ -34,8 +34,7 @@ class ContributorsView extends StatelessWidget {
               imagePath: 'assets/images/contribute/slack.png',
               title: 'Join and chat with us at',
               description: 'Slack channel',
-              url:
-                  'https://join.slack.com/t/circuitverse-team/shared_invite/enQtNjc4MzcyNDE5OTA3LTdjYTM5NjFiZWZlZGI2MmU1MmYzYzczNmZlZDg5MjYxYmQ4ODRjMjQxM2UyMWI5ODUzODQzMDU2ZDEzNjI4NmE',
+              url: 'https://circuitverse.org/slack',
             ),
             CircuitVerseSocialCard(
               imagePath: 'assets/images/contribute/github.png',
@@ -83,7 +82,7 @@ class ContributorsView extends StatelessWidget {
               imagePath: 'assets/images/contribute/paypal-logo.jpg',
               title: 'Donate through PayPal',
               url: 'https://www.paypal.me/satviksr',
-            )
+            ),
           ],
         ),
       ),

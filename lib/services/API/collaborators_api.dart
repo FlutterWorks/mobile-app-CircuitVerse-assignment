@@ -7,14 +7,14 @@ import 'package:mobile_app/utils/api_utils.dart';
 import 'package:mobile_app/utils/app_exceptions.dart';
 
 abstract class CollaboratorsApi {
-  Future<Collaborators> fetchProjectCollaborators(String projectId);
+  Future<Collaborators>? fetchProjectCollaborators(String projectId);
 
-  Future<AddCollaboratorsResponse> addCollaborators(
+  Future<AddCollaboratorsResponse>? addCollaborators(
     String projectId,
     String listOfMails,
   );
 
-  Future<bool> deleteCollaborator(
+  Future<bool>? deleteCollaborator(
     String projectId,
     String collaboratorId,
   );
@@ -24,7 +24,7 @@ class HttpCollaboratorsApi implements CollaboratorsApi {
   var headers = {'Content-Type': 'application/json'};
 
   @override
-  Future<Collaborators> fetchProjectCollaborators(String projectId) async {
+  Future<Collaborators>? fetchProjectCollaborators(String projectId) async {
     var endpoint = '/projects/$projectId/collaborators';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
@@ -34,8 +34,7 @@ class HttpCollaboratorsApi implements CollaboratorsApi {
         uri,
         headers: headers,
       );
-      var collaborators = Collaborators.fromJson(jsonResponse);
-      return collaborators;
+      return Collaborators.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHORIZED);
     } on NotFoundException {
@@ -46,7 +45,7 @@ class HttpCollaboratorsApi implements CollaboratorsApi {
   }
 
   @override
-  Future<AddCollaboratorsResponse> addCollaborators(
+  Future<AddCollaboratorsResponse>? addCollaborators(
     String projectId,
     String listOfMails,
   ) async {
@@ -73,7 +72,7 @@ class HttpCollaboratorsApi implements CollaboratorsApi {
   }
 
   @override
-  Future<bool> deleteCollaborator(
+  Future<bool>? deleteCollaborator(
     String projectId,
     String collaboratorId,
   ) async {

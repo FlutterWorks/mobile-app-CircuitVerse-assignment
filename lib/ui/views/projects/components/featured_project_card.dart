@@ -6,11 +6,14 @@ import 'package:mobile_app/ui/components/cv_primary_button.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class FeaturedProjectCard extends StatefulWidget {
+  const FeaturedProjectCard({
+    required this.project,
+    required this.onViewPressed,
+    Key? key,
+  }) : super(key: key);
+
   final Project project;
   final VoidCallback onViewPressed;
-  const FeaturedProjectCard(
-      {Key key, @required this.project, this.onViewPressed})
-      : super(key: key);
 
   @override
   _FeaturedProjectCardState createState() => _FeaturedProjectCardState();
@@ -21,13 +24,13 @@ class _FeaturedProjectCardState extends State<FeaturedProjectCard> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: CVTheme.primaryColor),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(4),
           topRight: Radius.circular(4),
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(4),
           topRight: Radius.circular(4),
         ),
@@ -36,8 +39,9 @@ class _FeaturedProjectCardState extends State<FeaturedProjectCard> {
           child: FadeInImage.memoryNetwork(
             fit: BoxFit.cover,
             placeholder: kTransparentImage,
-            image:
-                '${EnvironmentConfig.CV_API_BASE_URL.substring(0, EnvironmentConfig.CV_API_BASE_URL.length - 7) + widget.project.attributes.imagePreview.url}',
+            image: EnvironmentConfig.CV_API_BASE_URL.substring(
+                    0, EnvironmentConfig.CV_API_BASE_URL.length - 7) +
+                widget.project.attributes.imagePreview.url,
           ),
         ),
       ),
@@ -47,7 +51,7 @@ class _FeaturedProjectCardState extends State<FeaturedProjectCard> {
   Widget _buildFooter() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(4),
@@ -61,21 +65,19 @@ class _FeaturedProjectCardState extends State<FeaturedProjectCard> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
-            child: Container(
-              child: Text(
-                widget.project.attributes.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.start,
-                style: Theme.of(context).textTheme.headline6.copyWith(
-                      color: CVTheme.textColor(context),
-                    ),
-              ),
+            child: Text(
+              widget.project.attributes.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.start,
+              style: Theme.of(context).textTheme.headline6?.copyWith(
+                    color: CVTheme.textColor(context),
+                  ),
             ),
           ),
           CVPrimaryButton(
             title: 'View',
-            padding: EdgeInsets.all(2),
+            padding: const EdgeInsets.all(2),
             onPressed: widget.onViewPressed,
           ),
         ],

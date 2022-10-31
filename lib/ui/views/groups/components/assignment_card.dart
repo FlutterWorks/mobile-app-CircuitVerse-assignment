@@ -7,20 +7,19 @@ import 'package:mobile_app/ui/views/groups/assignment_details_view.dart';
 import 'package:mobile_app/ui/views/groups/components/group_card_button.dart';
 
 class AssignmentCard extends StatefulWidget {
+  const AssignmentCard({
+    Key? key,
+    required this.assignment,
+    required this.onDeletePressed,
+    required this.onEditPressed,
+    required this.onReopenPressed,
+    required this.onStartPressed,
+  }) : super(key: key);
   final Assignment assignment;
   final VoidCallback onDeletePressed;
   final VoidCallback onEditPressed;
   final VoidCallback onReopenPressed;
   final VoidCallback onStartPressed;
-
-  const AssignmentCard({
-    Key key,
-    this.assignment,
-    this.onDeletePressed,
-    this.onEditPressed,
-    this.onReopenPressed,
-    this.onStartPressed,
-  }) : super(key: key);
 
   @override
   _AssignmentCardState createState() => _AssignmentCardState();
@@ -34,7 +33,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
         children: <TextSpan>[
           TextSpan(
             text: '$title : ',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           TextSpan(
             text: description,
@@ -47,7 +46,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
 
   Widget _buildAssignmentButtons() {
     var _items = <Widget>[];
-    var _isMentor = widget.assignment.attributes.hasMentorAccess;
+    var _isMentor = widget.assignment.attributes.hasPrimaryMentorAccess;
     var _isOpen = widget.assignment.attributes.status != 'closed';
     var _isDeadlineOver =
         widget.assignment.attributes.deadline.isBefore(DateTime.now());
@@ -116,7 +115,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
           );
         } else {
           /// Add Not Submitted Button if _isProjectNotPresent & _isDeadlineOver
-          print('Not Submitted!');
+          debugPrint('Not Submitted!');
         }
       } else {
         if (_projectId != null) {
@@ -163,7 +162,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
         boxShadow: [
           BoxShadow(
             color: CVTheme.boxShadow(context),
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
             blurRadius: 2,
           )
         ],
@@ -176,7 +175,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
             widget.assignment.attributes.name ?? 'No Name',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.headline6.copyWith(
+            style: Theme.of(context).textTheme.headline6?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -188,7 +187,7 @@ class _AssignmentCardState extends State<AssignmentCard> {
             'Deadline',
             deadlineFormat.format(widget.assignment.attributes.deadline),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           _buildAssignmentButtons(),
         ],
       ),

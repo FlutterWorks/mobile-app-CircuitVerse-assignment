@@ -1,24 +1,21 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icons/flutter_icons.dart';
-import 'package:get/get.dart';
 import 'package:mobile_app/cv_theme.dart';
-import 'package:mobile_app/locator.dart';
-import 'package:mobile_app/services/dialog_service.dart';
+import 'package:mobile_app/ui/components/cv_drawer.dart';
 import 'package:mobile_app/ui/views/about/about_view.dart';
-import 'package:mobile_app/ui/views/authentication/login_view.dart';
 import 'package:mobile_app/ui/views/base_view.dart';
 import 'package:mobile_app/ui/views/contributors/contributors_view.dart';
 import 'package:mobile_app/ui/views/groups/my_groups_view.dart';
 import 'package:mobile_app/ui/views/home/home_view.dart';
+import 'package:mobile_app/ui/views/notifications/notifications_view.dart';
 import 'package:mobile_app/ui/views/profile/profile_view.dart';
 import 'package:mobile_app/ui/views/projects/featured_projects_view.dart';
 import 'package:mobile_app/ui/views/teachers/teachers_view.dart';
-import 'package:mobile_app/utils/snackbar_utils.dart';
 import 'package:mobile_app/viewmodels/cv_landing_viewmodel.dart';
-import 'package:theme_provider/theme_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CVLandingView extends StatefulWidget {
+  const CVLandingView({Key? key}) : super(key: key);
   static const String id = 'cv_landing_view';
 
   @override
@@ -26,209 +23,100 @@ class CVLandingView extends StatefulWidget {
 }
 
 class _CVLandingViewState extends State<CVLandingView> {
-  final DialogService _dialogService = locator<DialogService>();
-  CVLandingViewModel _model;
-  int _selectedIndex = 0;
+  // Global key
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<Widget> _items = [
-    HomeView(),
-    FeaturedProjectsView(showAppBar: false),
-    AboutView(),
-    ContributorsView(showAppBar: false),
-    TeachersView(showAppBar: false),
-    ProfileView(),
-    MyGroupsView(),
+    const HomeView(),
+    const FeaturedProjectsView(),
+    const AboutView(),
+    const ContributorsView(showAppBar: false),
+    const TeachersView(showAppBar: false),
+    const ProfileView(),
+    const MyGroupsView(),
+    // Featured Project View having search bar active
+    const FeaturedProjectsView(showSearchBar: true),
+    const NotificationsView(),
   ];
-
-  void setSelectedIndexTo(int index) {
-    Get.back();
-    if (_selectedIndex != index) {
-      setState(() => _selectedIndex = index);
-    }
-  }
 
   String _appBarTitle(int selectedIndex) {
     switch (selectedIndex) {
       case 1:
-        return 'Featured Circuits';
-        break;
+        return AppLocalizations.of(context)!.featured_circuits;
       case 5:
-        return 'Profile';
-        break;
+        return AppLocalizations.of(context)!.profile;
       case 6:
-        return 'Groups';
-        break;
+        return AppLocalizations.of(context)!.groups;
+      case 8:
+        return AppLocalizations.of(context)!.notifications;
       default:
-        return 'CircuitVerse';
+        return AppLocalizations.of(context)!.title;
     }
   }
 
-  Widget _buildAppBar() {
+  AppBar? _buildAppBar(int selectedIndex, CVLandingViewModel model) {
+    if (selectedIndex == 1 || selectedIndex == 7) return null;
     return AppBar(
       title: Text(
-        _appBarTitle(_selectedIndex),
+        _appBarTitle(selectedIndex),
         style: TextStyle(
           color: CVTheme.appBarText(context),
         ),
       ),
-      centerTitle: true,
-    );
-  }
-
-  Widget _buildDrawerTile(String title, IconData iconData) {
-    return ListTile(
-      leading: Icon(
-        iconData,
-        color: CVTheme.drawerIcon(context),
-      ),
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.headline6,
-      ),
-    );
-  }
-
-  Future<void> onLogoutPressed() async {
-    Get.back();
-
-    var _dialogResponse = await _dialogService.showConfirmationDialog(
-      title: 'Log Out',
-      description: 'Are you sure you want to logout?',
-      confirmationTitle: 'LOGOUT',
-    );
-
-    if (_dialogResponse.confirmed) {
-      _model.onLogout();
-      setState(() => _selectedIndex = 0);
-      SnackBarUtils.showDark('Logged Out Successfully');
-    }
-  }
-
-  Widget _buildDrawer() {
-    return Drawer(
-      child: Stack(
-        children: [
-          ListView(
-            children: <Widget>[
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 32, horizontal: 10),
-                child: Image.asset(
-                  'assets/images/landing/cv_full_logo.png',
-                  width: 90,
-                ),
-              ),
-              InkWell(
-                child: _buildDrawerTile('Home', Icons.home),
-                onTap: () => setSelectedIndexTo(0),
-              ),
-              Theme(
-                data: CVTheme.themeData(context),
-                child: ExpansionTile(
-                  maintainState: true,
-                  title: ListTile(
-                    contentPadding: EdgeInsets.all(0),
-                    leading: Icon(
-                      Icons.explore,
-                      color: CVTheme.drawerIcon(context),
-                    ),
-                    title: Text(
-                      'Explore',
-                      style: Theme.of(context).textTheme.headline6,
-                    ),
+      leading: IconButton(
+        onPressed: () {
+          _scaffoldKey.currentState?.openDrawer();
+        },
+        icon: Stack(
+          children: [
+            if (model.hasPendingNotif)
+              Align(
+                alignment: Alignment.topRight,
+                child: Container(
+                  height: 8,
+                  width: 8,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: CVTheme.red,
                   ),
-                  children: <Widget>[
-                    InkWell(
-                      child: _buildDrawerTile('Featured Circuits', Icons.star),
-                      onTap: () => setSelectedIndexTo(1),
-                    ),
-                  ],
                 ),
               ),
-              InkWell(
-                child: _buildDrawerTile('About', FontAwesome5.address_card),
-                onTap: () => setSelectedIndexTo(2),
-              ),
-              InkWell(
-                child: _buildDrawerTile('Contribute', Icons.add),
-                onTap: () => setSelectedIndexTo(3),
-              ),
-              InkWell(
-                child: _buildDrawerTile('Teachers', Icons.account_balance),
-                onTap: () => setSelectedIndexTo(4),
-              ),
-              _model.isLoggedIn
-                  ? Theme(
-                      data: CVTheme.themeData(context),
-                      child: ExpansionTile(
-                        maintainState: true,
-                        title: Text(
-                          _model.currentUser.data.attributes.name ?? '',
-                          style: Theme.of(context).textTheme.headline6.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        children: <Widget>[
-                          InkWell(
-                            child:
-                                _buildDrawerTile('Profile', FontAwesome5.user),
-                            onTap: () => setSelectedIndexTo(5),
-                          ),
-                          InkWell(
-                            child: _buildDrawerTile(
-                                'My Groups', FontAwesome5.object_group),
-                            onTap: () => setSelectedIndexTo(6),
-                          ),
-                          InkWell(
-                            child: _buildDrawerTile(
-                                'Log Out', Ionicons.ios_log_out),
-                            onTap: onLogoutPressed,
-                          ),
-                        ],
-                      ),
-                    )
-                  : InkWell(
-                      child: _buildDrawerTile('Login', Ionicons.ios_log_in),
-                      onTap: () => Get.offAndToNamed(LoginView.id),
-                    )
-            ],
-          ),
-          Positioned(
-            right: 5,
-            top: 35,
-            child: IconButton(
-                icon: Theme.of(context).brightness == Brightness.dark
-                    ? const Icon(Icons.brightness_low)
-                    : const Icon(Icons.brightness_high),
-                iconSize: 28.0,
-                onPressed: () {
-                  if (ThemeProvider != null) {
-                    ThemeProvider.controllerOf(context).nextTheme();
-                  }
-                }),
-          ),
-        ],
+            const Center(child: Icon(Icons.menu)),
+          ],
+        ),
       ),
+      centerTitle: true,
+      elevation: selectedIndex == 6 ? 0 : 4,
+      actions: [
+        Visibility(
+          visible: selectedIndex == 0,
+          child: IconButton(
+            onPressed: () {
+              model.selectedIndex = 7;
+            },
+            icon: const Icon(Icons.search),
+          ),
+        )
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return BaseView<CVLandingViewModel>(
-      onModelReady: (model) {
-        _model = model;
-      },
+      onModelReady: (model) => model.setUser(),
       builder: (context, model, child) => WillPopScope(
         onWillPop: () {
-          if (_selectedIndex != 0) {
-            setState(() => _selectedIndex = 0);
+          if (model.selectedIndex != 0) {
+            model.selectedIndex = 0;
             return Future.value(false);
           }
           return Future.value(true);
         },
         child: Scaffold(
-          appBar: _buildAppBar(),
-          drawer: _buildDrawer(),
+          key: _scaffoldKey,
+          appBar: _buildAppBar(model.selectedIndex, model),
+          drawer: const CVDrawer(),
           body: PageTransitionSwitcher(
             transitionBuilder: (
               Widget child,
@@ -241,7 +129,7 @@ class _CVLandingViewState extends State<CVLandingView> {
                 child: child,
               );
             },
-            child: _items.elementAt(_selectedIndex),
+            child: _items.elementAt(model.selectedIndex),
           ),
         ),
       ),

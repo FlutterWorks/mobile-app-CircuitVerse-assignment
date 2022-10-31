@@ -13,15 +13,18 @@ import 'package:mobile_app/utils/validators.dart';
 import 'package:mobile_app/viewmodels/authentication/forgot_password_viewmodel.dart';
 
 class ForgotPasswordView extends StatefulWidget {
+  const ForgotPasswordView({Key? key}) : super(key: key);
+
   static const String id = 'forgot_password_view';
+
   @override
   _ForgotPasswordViewState createState() => _ForgotPasswordViewState();
 }
 
 class _ForgotPasswordViewState extends State<ForgotPasswordView> {
-  ForgotPasswordViewModel _model;
+  late ForgotPasswordViewModel _model;
   final _formKey = GlobalKey<FormState>();
-  String _email;
+  late String _email;
 
   Widget _buildForgotPasswordImage() {
     return Container(
@@ -43,7 +46,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
       type: TextInputType.emailAddress,
       validator: (value) =>
           Validators.isEmailValid(value) ? null : 'Please enter a valid email',
-      onSaved: (value) => _email = value.trim(),
+      onSaved: (value) => _email = value!.trim(),
       action: TextInputAction.done,
     );
   }
@@ -68,7 +71,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
         text: TextSpan(
           text: 'New User? ',
           style: Theme.of(context).textTheme.bodyText1,
-          children: <TextSpan>[
+          children: const <TextSpan>[
             TextSpan(
               text: 'Sign Up',
               style: TextStyle(
@@ -96,16 +99,21 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
 
       if (_model.isSuccess(_model.SEND_RESET_INSTRUCTIONS)) {
         // show instructions sent snackbar
-        SnackBarUtils.showDark('Instructions Sent to $_email');
+        SnackBarUtils.showDark(
+          'Instructions Sent to $_email',
+          'Please check your mail for password reset link.',
+        );
 
         // route back to previous screen
-        await Future.delayed(Duration(seconds: 1));
-        await Get.back();
+        await Future.delayed(const Duration(seconds: 1));
+        Get.back();
       } else if (_model.isError(_model.SEND_RESET_INSTRUCTIONS)) {
         // show failure snackbar
         SnackBarUtils.showDark(
-            _model.errorMessageFor(_model.SEND_RESET_INSTRUCTIONS));
-        _formKey.currentState.reset();
+          'Error',
+          _model.errorMessageFor(_model.SEND_RESET_INSTRUCTIONS),
+        );
+        _formKey.currentState?.reset();
       }
     }
   }
@@ -121,14 +129,14 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             child: Column(
               children: <Widget>[
                 _buildForgotPasswordImage(),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _buildEmailInput(),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _buildSendInstructionsButton(),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _buildNewUserSignUpComponent(),
-                SizedBox(height: 32),
-                AuthOptionsView(
+                const SizedBox(height: 32),
+                const AuthOptionsView(
                   isSignUp: false,
                 ),
               ],

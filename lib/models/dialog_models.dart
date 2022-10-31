@@ -1,23 +1,21 @@
-import 'package:flutter/foundation.dart';
-
 class DialogRequest {
-  final String title;
-  final String description;
-  final String buttonTitle;
-  final String cancelTitle;
-
   DialogRequest({
-    @required this.title,
+    required this.title,
     this.description,
     this.buttonTitle,
     this.cancelTitle,
   });
+
+  final String title;
+  final String? description;
+  final String? buttonTitle;
+  final String? cancelTitle;
 }
 
 class DialogResponse {
-  final bool confirmed;
-
   DialogResponse({
-    this.confirmed,
+    required this.confirmed,
   });
+
+  final bool confirmed;
 }

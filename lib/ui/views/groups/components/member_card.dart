@@ -3,16 +3,18 @@ import 'package:mobile_app/cv_theme.dart';
 import 'package:mobile_app/models/group_members.dart';
 
 class MemberCard extends StatelessWidget {
+  const MemberCard({
+    Key? key,
+    required this.member,
+    this.hasMentorAccess = false,
+    required this.onDeletePressed,
+    required this.onEditPressed,
+  }) : super(key: key);
+
   final GroupMember member;
   final bool hasMentorAccess;
+  final VoidCallback onEditPressed;
   final VoidCallback onDeletePressed;
-
-  const MemberCard({
-    Key key,
-    this.member,
-    this.hasMentorAccess = false,
-    this.onDeletePressed,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class MemberCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: CVTheme.boxShadow(context),
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
             blurRadius: 2,
           )
         ],
@@ -50,13 +52,29 @@ class MemberCard extends StatelessWidget {
               ],
             ),
           ),
-          hasMentorAccess
-              ? IconButton(
-                  icon: Icon(Icons.delete_outline),
-                  color: CVTheme.red,
-                  onPressed: onDeletePressed,
-                )
-              : Container()
+          if (hasMentorAccess)
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: onEditPressed,
+                  child: const Icon(
+                    Icons.edit_outlined,
+                    color: CVTheme.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: onDeletePressed,
+                  child: const Icon(
+                    Icons.delete_outline,
+                    color: CVTheme.red,
+                  ),
+                ),
+              ],
+            )
+          else
+            Container()
         ],
       ),
     );

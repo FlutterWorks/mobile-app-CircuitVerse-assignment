@@ -12,6 +12,8 @@ import 'package:mobile_app/utils/validators.dart';
 import 'package:mobile_app/viewmodels/groups/new_group_viewmodel.dart';
 
 class NewGroupView extends StatefulWidget {
+  const NewGroupView({Key? key}) : super(key: key);
+
   static const String id = 'new_group_view';
 
   @override
@@ -20,9 +22,9 @@ class NewGroupView extends StatefulWidget {
 
 class _NewGroupViewState extends State<NewGroupView> {
   final DialogService _dialogService = locator<DialogService>();
-  NewGroupViewModel _model;
+  late NewGroupViewModel _model;
   final _formKey = GlobalKey<FormState>();
-  String _name;
+  late String _name;
 
   Future<void> _validateAndSubmit() async {
     if (Validators.validateAndSaveForm(_formKey)) {
@@ -35,11 +37,17 @@ class _NewGroupViewState extends State<NewGroupView> {
       _dialogService.popDialog();
 
       if (_model.isSuccess(_model.ADD_GROUP)) {
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 1));
         Get.back(result: _model.newGroup);
-        SnackBarUtils.showDark('Group Created');
+        SnackBarUtils.showDark(
+          'Group Created',
+          'New group was created successfully.',
+        );
       } else if (_model.isError(_model.ADD_GROUP)) {
-        SnackBarUtils.showDark(_model.errorMessageFor(_model.ADD_GROUP));
+        SnackBarUtils.showDark(
+          'Error',
+          _model.errorMessageFor(_model.ADD_GROUP),
+        );
       }
     }
   }
@@ -57,26 +65,27 @@ class _NewGroupViewState extends State<NewGroupView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                CVSubheader(
+                const CVSubheader(
                   title: 'NEW GROUP',
                   subtitle:
                       'Groups an be used by mentors to set projects for and give grades to students.',
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 SvgPicture.asset(
                   'assets/images/group/new_group.svg',
                   height: 200,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 CVTextField(
                   padding: const EdgeInsets.all(0),
                   label: 'Group Name',
-                  validator: (value) =>
-                      value.isEmpty ? 'Please enter a Group Name' : null,
-                  onSaved: (value) => _name = value.trim(),
+                  validator: (value) => value?.isEmpty ?? true
+                      ? 'Please enter a Group Name'
+                      : null,
+                  onSaved: (value) => _name = value!.trim(),
                   action: TextInputAction.done,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 CVPrimaryButton(
                   title: 'SAVE',
                   onPressed: _validateAndSubmit,

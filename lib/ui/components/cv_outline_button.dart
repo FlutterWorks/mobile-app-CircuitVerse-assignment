@@ -2,22 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:mobile_app/cv_theme.dart';
 
 class CVOutlineButton extends StatelessWidget {
-  final String title;
-  final VoidCallback onPressed;
-  final bool isBodyText;
-  final bool isPrimaryDark;
-
   const CVOutlineButton({
-    Key key,
-    @required this.title,
+    required this.title,
     this.onPressed,
     this.isBodyText = false,
     this.isPrimaryDark = false,
+    Key? key,
   }) : super(key: key);
+
+  final String title;
+  final VoidCallback? onPressed;
+  final bool isBodyText;
+  final bool isPrimaryDark;
 
   @override
   Widget build(BuildContext context) {
-    return OutlineButton(
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        side: BorderSide(
+          color:
+              isPrimaryDark ? CVTheme.primaryColorDark : CVTheme.primaryColor,
+          width: 2,
+        ),
+      ),
+      onPressed: onPressed ?? () {},
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Text(
@@ -27,11 +35,6 @@ class CVOutlineButton extends StatelessWidget {
               : Theme.of(context).textTheme.headline6,
         ),
       ),
-      borderSide: BorderSide(
-        color: isPrimaryDark ? CVTheme.primaryColorDark : CVTheme.primaryColor,
-        width: 2,
-      ),
-      onPressed: onPressed ?? () {},
     );
   }
 }

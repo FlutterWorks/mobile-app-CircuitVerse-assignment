@@ -6,24 +6,24 @@ import 'package:mobile_app/utils/api_utils.dart';
 import 'package:mobile_app/utils/app_exceptions.dart';
 
 abstract class GroupsApi {
-  Future<Groups> fetchMemberGroups({int page = 1});
+  Future<Groups>? fetchMemberGroups({int page = 1});
 
-  Future<Groups> fetchMentoringGroups({int page = 1});
+  Future<Groups>? fetchOwnedGroups({int page = 1});
 
-  Future<Group> fetchGroupDetails(String groupId);
+  Future<Group>? fetchGroupDetails(String groupId);
 
-  Future<Group> addGroup(String name);
+  Future<Group>? addGroup(String name);
 
-  Future<Group> updateGroup(String groupId, String name);
+  Future<Group>? updateGroup(String groupId, String name);
 
-  Future<bool> deleteGroup(String groupId);
+  Future<bool>? deleteGroup(String groupId);
 }
 
 class HttpGroupsApi implements GroupsApi {
   var headers = {'Content-Type': 'application/json'};
 
   @override
-  Future<Groups> fetchMemberGroups({int page = 1}) async {
+  Future<Groups>? fetchMemberGroups({int page = 1}) async {
     var endpoint = '/groups?page[number]=$page';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
@@ -33,8 +33,7 @@ class HttpGroupsApi implements GroupsApi {
         uri,
         headers: headers,
       );
-      var groups = Groups.fromJson(jsonResponse);
-      return groups;
+      return Groups.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHORIZED);
     } on Exception {
@@ -43,8 +42,8 @@ class HttpGroupsApi implements GroupsApi {
   }
 
   @override
-  Future<Groups> fetchMentoringGroups({int page = 1}) async {
-    var endpoint = '/groups/mentored?page[number]=$page';
+  Future<Groups>? fetchOwnedGroups({int page = 1}) async {
+    var endpoint = '/groups/owned?page[number]=$page';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
     try {
@@ -53,8 +52,7 @@ class HttpGroupsApi implements GroupsApi {
         uri,
         headers: headers,
       );
-      var groups = Groups.fromJson(jsonResponse);
-      return groups;
+      return Groups.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHORIZED);
     } on Exception {
@@ -63,7 +61,7 @@ class HttpGroupsApi implements GroupsApi {
   }
 
   @override
-  Future<Group> fetchGroupDetails(String groupId) async {
+  Future<Group>? fetchGroupDetails(String groupId) async {
     var endpoint = '/groups/$groupId?include=group_members,assignments';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
@@ -73,8 +71,7 @@ class HttpGroupsApi implements GroupsApi {
         uri,
         headers: headers,
       );
-      var group = Group.fromJson(jsonResponse);
-      return group;
+      return Group.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHENTICATED);
     } on ForbiddenException {
@@ -87,7 +84,7 @@ class HttpGroupsApi implements GroupsApi {
   }
 
   @override
-  Future<Group> addGroup(String name) async {
+  Future<Group>? addGroup(String name) async {
     var endpoint = '/groups';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
     var json = {'name': name};
@@ -99,8 +96,7 @@ class HttpGroupsApi implements GroupsApi {
         headers: headers,
         body: json,
       );
-      var group = Group.fromJson(jsonResponse);
-      return group;
+      return Group.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHENTICATED);
     } on Exception {
@@ -109,7 +105,7 @@ class HttpGroupsApi implements GroupsApi {
   }
 
   @override
-  Future<Group> updateGroup(String groupId, String name) async {
+  Future<Group>? updateGroup(String groupId, String name) async {
     var endpoint = '/groups/$groupId?include=group_members,assignments';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
     var json = {'name': name};
@@ -121,8 +117,7 @@ class HttpGroupsApi implements GroupsApi {
         headers: headers,
         body: json,
       );
-      var group = Group.fromJson(jsonResponse);
-      return group;
+      return Group.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHENTICATED);
     } on ForbiddenException {
@@ -135,7 +130,7 @@ class HttpGroupsApi implements GroupsApi {
   }
 
   @override
-  Future<bool> deleteGroup(String groupId) async {
+  Future<bool>? deleteGroup(String groupId) async {
     var endpoint = '/groups/$groupId';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 

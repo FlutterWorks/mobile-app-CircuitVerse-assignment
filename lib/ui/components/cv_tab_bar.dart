@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CVTabBar extends StatelessWidget implements PreferredSizeWidget {
-  final Color color;
-  final TabBar tabBar;
+  const CVTabBar({
+    Key? key,
+    this.color,
+    required this.tabBar,
+  }) : super(key: key);
 
-  CVTabBar({this.color, this.tabBar});
+  final Color? color;
+  final TabBar tabBar;
 
   @override
   Size get preferredSize => tabBar.preferredSize;
@@ -14,7 +18,7 @@ class CVTabBar extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.vertical(
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(4),
         ),
       ),

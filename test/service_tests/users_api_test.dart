@@ -39,7 +39,7 @@ void main() {
         expect(_usersApi.login('test@test.com', 'test'),
             throwsA(isInstanceOf<Failure>()));
 
-        ApiUtils.client = MockClient((_) => throw FormatException(''));
+        ApiUtils.client = MockClient((_) => throw const FormatException(''));
         expect(_usersApi.login('test@test.com', 'test'),
             throwsA(isInstanceOf<Failure>()));
 
@@ -66,7 +66,7 @@ void main() {
         expect(_usersApi.signup('test', 'test@test.com', 'test'),
             throwsA(isInstanceOf<Failure>()));
 
-        ApiUtils.client = MockClient((_) => throw FormatException(''));
+        ApiUtils.client = MockClient((_) => throw const FormatException(''));
         expect(_usersApi.signup('test', 'test@test.com', 'test'),
             throwsA(isInstanceOf<Failure>()));
 
@@ -94,7 +94,7 @@ void main() {
         expect(_usersApi.oauthLogin(accessToken: 'token', provider: 'test'),
             throwsA(isInstanceOf<Failure>()));
 
-        ApiUtils.client = MockClient((_) => throw FormatException(''));
+        ApiUtils.client = MockClient((_) => throw const FormatException(''));
         expect(_usersApi.oauthLogin(accessToken: 'token', provider: 'test'),
             throwsA(isInstanceOf<Failure>()));
 
@@ -122,7 +122,7 @@ void main() {
         expect(_usersApi.oauthSignup(accessToken: 'token', provider: 'test'),
             throwsA(isInstanceOf<Failure>()));
 
-        ApiUtils.client = MockClient((_) => throw FormatException(''));
+        ApiUtils.client = MockClient((_) => throw const FormatException(''));
         expect(_usersApi.oauthSignup(accessToken: 'token', provider: 'test'),
             throwsA(isInstanceOf<Failure>()));
 
@@ -145,7 +145,7 @@ void main() {
       test('When called & http client throws Exceptions', () async {
         var _usersApi = HttpUsersApi();
 
-        ApiUtils.client = MockClient((_) => throw FormatException(''));
+        ApiUtils.client = MockClient((_) => throw const FormatException(''));
         expect(_usersApi.fetchUser('1'), throwsA(isInstanceOf<Failure>()));
 
         ApiUtils.client = MockClient((_) => throw NotFoundException(''));
@@ -169,7 +169,7 @@ void main() {
       test('When called & http client throws Exceptions', () async {
         var _usersApi = HttpUsersApi();
 
-        ApiUtils.client = MockClient((_) => throw FormatException(''));
+        ApiUtils.client = MockClient((_) => throw const FormatException(''));
         expect(_usersApi.fetchCurrentUser(), throwsA(isInstanceOf<Failure>()));
 
         ApiUtils.client = MockClient((_) => throw Exception(''));
@@ -187,7 +187,7 @@ void main() {
             (_) => Future.value(Response(json.encode(mockUser), 202)));
         expect(
             (await _usersApi.updateProfile(
-                    'Test User', 'Gurukul', 'India', true))
+                    'Test User', 'Gurukul', 'India', true, null, false))
                 .toString(),
             User.fromJson(mockUser).toString());
       });
@@ -197,12 +197,16 @@ void main() {
         when(_localStorage.currentUser).thenReturn(User.fromJson(mockUser));
         var _usersApi = HttpUsersApi();
 
-        ApiUtils.client = MockClient((_) => throw FormatException(''));
-        expect(_usersApi.updateProfile('Test User', 'Gurukul', 'India', true),
+        ApiUtils.client = MockClient((_) => throw const FormatException(''));
+        expect(
+            _usersApi.updateProfile(
+                'Test User', 'Gurukul', 'India', true, null, false),
             throwsA(isInstanceOf<Failure>()));
 
         ApiUtils.client = MockClient((_) => throw Exception(''));
-        expect(_usersApi.updateProfile('Test User', 'Gurukul', 'India', true),
+        expect(
+            _usersApi.updateProfile(
+                'Test User', 'Gurukul', 'India', true, null, false),
             throwsA(isInstanceOf<Failure>()));
       });
     });
@@ -213,7 +217,7 @@ void main() {
 
         ApiUtils.client = MockClient((_) =>
             Future.value(Response('{"message": "instructions sent"}', 200)));
-        expect((await _usersApi.sendResetPasswordInstructions('test@test.com')),
+        expect(await _usersApi.sendResetPasswordInstructions('test@test.com'),
             true);
       });
 
@@ -224,7 +228,7 @@ void main() {
         expect(_usersApi.sendResetPasswordInstructions('test@test.com'),
             throwsA(isInstanceOf<Failure>()));
 
-        ApiUtils.client = MockClient((_) => throw FormatException(''));
+        ApiUtils.client = MockClient((_) => throw const FormatException(''));
         expect(_usersApi.sendResetPasswordInstructions('test@test.com'),
             throwsA(isInstanceOf<Failure>()));
 

@@ -7,19 +7,21 @@ import 'package:mobile_app/utils/api_utils.dart';
 import 'package:mobile_app/utils/app_exceptions.dart';
 
 abstract class GroupMembersApi {
-  Future<GroupMembers> fetchGroupMembers(String groupId);
+  Future<GroupMembers>? fetchGroupMembers(String groupId);
 
-  Future<AddGroupMembersResponse> addGroupMembers(
-      String groupId, String listOfMails);
+  Future<AddGroupMembersResponse>? addGroupMembers(
+      String groupId, String listOfMails, bool isMentor);
 
-  Future<bool> deleteGroupMember(String groupMemberId);
+  Future updateMemberRole(String memberId, bool isMentor);
+
+  Future<bool>? deleteGroupMember(String groupMemberId);
 }
 
 class HttpGroupMembersApi implements GroupMembersApi {
   var headers = {'Content-Type': 'application/json'};
 
   @override
-  Future<GroupMembers> fetchGroupMembers(String groupId) async {
+  Future<GroupMembers>? fetchGroupMembers(String groupId) async {
     var endpoint = '/groups/$groupId/members';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 
@@ -29,8 +31,7 @@ class HttpGroupMembersApi implements GroupMembersApi {
         uri,
         headers: headers,
       );
-      var groupMembers = GroupMembers.fromJson(jsonResponse);
-      return groupMembers;
+      return GroupMembers.fromJson(jsonResponse);
     } on UnauthorizedException {
       throw Failure(Constants.UNAUTHORIZED);
     } on NotFoundException {
@@ -41,11 +42,11 @@ class HttpGroupMembersApi implements GroupMembersApi {
   }
 
   @override
-  Future<AddGroupMembersResponse> addGroupMembers(
-      String groupId, String listOfMails) async {
+  Future<AddGroupMembersResponse>? addGroupMembers(
+      String groupId, String listOfMails, bool isMentor) async {
     var endpoint = '/groups/$groupId/members';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
-    var json = {'emails': listOfMails};
+    var json = {'emails': listOfMails, 'mentor': isMentor};
 
     try {
       ApiUtils.addTokenToHeaders(headers);
@@ -66,7 +67,27 @@ class HttpGroupMembersApi implements GroupMembersApi {
   }
 
   @override
-  Future<bool> deleteGroupMember(String groupMemberId) async {
+  Future updateMemberRole(String memberId, bool isMentor) async {
+    var endpoint = '/group/members/$memberId';
+    var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
+    var json = {
+      'group_member': {'mentor': isMentor}
+    };
+
+    try {
+      ApiUtils.addTokenToHeaders(headers);
+      await ApiUtils.patch(uri, headers: headers, body: json);
+    } on UnauthorizedException {
+      throw Failure(Constants.UNAUTHORIZED);
+    } on NotFoundException {
+      throw Failure(Constants.GROUP_MEMBER_NOT_FOUND);
+    } on Exception {
+      throw Failure(Constants.GENERIC_FAILURE);
+    }
+  }
+
+  @override
+  Future<bool>? deleteGroupMember(String groupMemberId) async {
     var endpoint = '/group/members/$groupMemberId';
     var uri = EnvironmentConfig.CV_API_BASE_URL + endpoint;
 

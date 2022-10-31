@@ -9,7 +9,8 @@ import 'package:mobile_app/ui/components/cv_primary_button.dart';
 import 'package:mobile_app/ui/components/cv_text_field.dart';
 import 'package:mobile_app/ui/components/cv_typeahead_field.dart';
 import 'package:mobile_app/ui/views/profile/edit_profile_view.dart';
-import 'package:mobile_app/utils/image_test_utils.dart';
+import '../../setup/test_helpers.mocks.dart';
+import '../../utils_tests/image_test_utils.dart';
 import 'package:mobile_app/utils/router.dart';
 import 'package:mobile_app/viewmodels/profile/edit_profile_viewmodel.dart';
 import 'package:mockito/mockito.dart';
@@ -20,7 +21,7 @@ import '../../setup/test_helpers.dart';
 
 void main() {
   group('EditProfileViewTest -', () {
-    NavigatorObserver mockObserver;
+    late MockNavigatorObserver mockObserver;
 
     setUpAll(() async {
       SharedPreferences.setMockInitialValues({});
@@ -28,9 +29,20 @@ void main() {
       locator.allowReassignment = true;
     });
 
-    setUp(() => mockObserver = NavigatorObserverMock());
+    setUp(() => mockObserver = MockNavigatorObserver());
 
     Future<void> _pumpEditProfileView(WidgetTester tester) async {
+      // Mock Edit Profile View Model
+      var _editProfileViewModel = MockEditProfileViewModel();
+      locator.registerSingleton<EditProfileViewModel>(_editProfileViewModel);
+
+      when(_editProfileViewModel.UPDATE_PROFILE)
+          .thenAnswer((_) => 'update_profile');
+      when(_editProfileViewModel.imageUpdated).thenAnswer((_) => false);
+      when(_editProfileViewModel.updateProfile(any, any, any, any))
+          .thenReturn(null);
+      when(_editProfileViewModel.isSuccess(any)).thenReturn(true);
+      when(_editProfileViewModel.updatedUser).thenAnswer((_) => null);
       // Mock Local Storage
       var _localStorageService = getAndRegisterLocalStorageServiceMock();
 
@@ -42,7 +54,7 @@ void main() {
         GetMaterialApp(
           onGenerateRoute: CVRouter.generateRoute,
           navigatorObservers: [mockObserver],
-          home: EditProfileView(),
+          home: const EditProfileView(),
         ),
       );
 
@@ -74,6 +86,59 @@ void main() {
       });
     });
 
+    testWidgets('pick profile picture', (WidgetTester tester) async {
+      // Pump Edit Profile View
+      await _pumpEditProfileView(tester);
+      await tester.pumpAndSettle();
+
+      final _profilePictureWidget = find.byKey(const Key('profile_image'));
+      expect(_profilePictureWidget, findsOneWidget);
+
+      await tester.tap(_profilePictureWidget);
+      await tester.pumpAndSettle();
+
+      // Bottom sheet is opened
+      verify(mockObserver.didPush(any, any));
+
+      final _galleryPickerIcon = find.byIcon(Icons.collections);
+      expect(_galleryPickerIcon, findsOneWidget);
+
+      await tester.tap(_galleryPickerIcon);
+      await tester.pumpAndSettle();
+
+      verify(mockObserver.didPop(any, any));
+    });
+
+    testWidgets('remove picked profile picture', (WidgetTester tester) async {
+      // Pump Edit Profile View
+      await _pumpEditProfileView(tester);
+      await tester.pumpAndSettle();
+
+      final _editProfileViewModel = locator<EditProfileViewModel>();
+
+      final _profilePictureWidget = find.byKey(const Key('profile_image'));
+      expect(_profilePictureWidget, findsOneWidget);
+
+      await tester.tap(_profilePictureWidget);
+      await tester.pumpAndSettle();
+
+      // Bottom sheet is opened
+      verify(mockObserver.didPush(any, any));
+
+      final _deleteImageWidget = find.byIcon(Icons.delete);
+      expect(_deleteImageWidget, findsOneWidget);
+
+      await tester.tap(_deleteImageWidget);
+      await tester.pumpAndSettle();
+
+      // Set the selected image to null
+      when(_editProfileViewModel.updatedImage).thenAnswer((_) => null);
+
+      // Bottom Sheet is closed
+      verify(mockObserver.didPop(any, any));
+      expect(_editProfileViewModel.updatedImage, isNull);
+    });
+
     testWidgets('on Save Details is Tapped', (WidgetTester tester) async {
       // Mock Dialog Service
       var _dialogService = MockDialogService();
@@ -83,16 +148,6 @@ void main() {
           .thenAnswer((_) => Future.value(DialogResponse(confirmed: false)));
       when(_dialogService.popDialog()).thenReturn(null);
 
-      // Mock Edit Profile View Model
-      var _editProfileViewModel = MockEditProfileViewModel();
-      locator.registerSingleton<EditProfileViewModel>(_editProfileViewModel);
-
-      when(_editProfileViewModel.updateProfile(any, any, any, any))
-          .thenReturn(null);
-      when(_editProfileViewModel
-              .isSuccess(_editProfileViewModel.UPDATE_PROFILE))
-          .thenReturn(true);
-
       // Pump Edit Profile View
       await _pumpEditProfileView(tester);
       await tester.pumpAndSettle();
@@ -101,7 +156,7 @@ void main() {
       await tester.tap(find.widgetWithText(CVPrimaryButton, 'Save Details'));
       await tester.pumpAndSettle();
 
-      await tester.pump(Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 5));
 
       // Verify Dialog Service is called to show Dialog of Updating
       verify(_dialogService.showCustomProgressDialog(title: anyNamed('title')))

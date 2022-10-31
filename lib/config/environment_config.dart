@@ -4,6 +4,16 @@ class EnvironmentConfig {
     defaultValue: 'https://circuitverse.org/api/v1',
   );
 
+  static const String IB_API_BASE_URL = String.fromEnvironment(
+    'IB_API_BASE_URL',
+    defaultValue: 'https://learn.circuitverse.org/_api/pages',
+  );
+
+  static const String IB_BASE_URL = String.fromEnvironment(
+    'IB_BASE_URL',
+    defaultValue: 'https://learn.circuitverse.org',
+  );
+
   // GITHUB OAUTH ENV VARIABLES
   static const String GITHUB_OAUTH_CLIENT_ID = String.fromEnvironment(
     'GITHUB_OAUTH_CLIENT_ID',
@@ -15,4 +25,10 @@ class EnvironmentConfig {
     'GITHUB_OAUTH_REDIRECT_URI',
     defaultValue: 'circuitverse://auth/callback/github',
   );
+
+  static String CV_BASE_URL = CV_API_BASE_URL.replaceAll('/api/v1', '');
+
+  // FB OAUTH ENV VARIABLES
+  static const String FB_APP_NAME = String.fromEnvironment('FB_APP_NAME');
+  static const String FB_APP_ID = String.fromEnvironment('FB_APP_ID');
 }

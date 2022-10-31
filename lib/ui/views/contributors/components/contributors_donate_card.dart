@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:mobile_app/utils/url_launcher.dart';
 
 class ContributeDonateCard extends StatelessWidget {
+  const ContributeDonateCard({
+    Key? key,
+    required this.imagePath,
+    required this.title,
+    required this.url,
+  }) : super(key: key);
+
   final String imagePath;
   final String title;
   final String url;
-
-  const ContributeDonateCard({
-    Key key,
-    this.imagePath,
-    this.title,
-    this.url,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,19 +21,19 @@ class ContributeDonateCard extends StatelessWidget {
           title,
           style: Theme.of(context).textTheme.headline6,
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         GestureDetector(
           onTap: () async {
-            await launchURL(url);
+            launchURL(url);
           },
           child: Container(
             decoration: BoxDecoration(
                 border: Border.all(color: Colors.black, width: 2),
-                borderRadius: BorderRadius.all(
+                borderRadius: const BorderRadius.all(
                   Radius.circular(8),
                 ),
                 color: Colors.white,
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.grey,
                     blurRadius: 2.0,
@@ -43,7 +43,7 @@ class ContributeDonateCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: ClipRRect(
-                borderRadius: BorderRadius.all(
+                borderRadius: const BorderRadius.all(
                   Radius.circular(8),
                 ),
                 child: Image.asset(

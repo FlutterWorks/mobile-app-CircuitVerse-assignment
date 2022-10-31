@@ -6,7 +6,6 @@ import 'package:mobile_app/models/dialog_models.dart';
 import 'package:mobile_app/models/groups.dart';
 import 'package:mobile_app/models/user.dart';
 import 'package:mobile_app/services/dialog_service.dart';
-import 'package:mobile_app/ui/components/cv_primary_button.dart';
 import 'package:mobile_app/ui/views/groups/components/group_card_button.dart';
 import 'package:mobile_app/ui/views/groups/components/group_member_card.dart';
 import 'package:mobile_app/ui/views/groups/components/group_mentor_card.dart';
@@ -23,10 +22,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../setup/test_data/mock_groups.dart';
 import '../../setup/test_data/mock_user.dart';
 import '../../setup/test_helpers.dart';
+import '../../setup/test_helpers.mocks.dart';
 
 void main() {
   group('MyGroupsViewTest -', () {
-    NavigatorObserver mockObserver;
+    late MockNavigatorObserver mockObserver;
 
     setUpAll(() async {
       SharedPreferences.setMockInitialValues({});
@@ -34,7 +34,7 @@ void main() {
       locator.allowReassignment = true;
     });
 
-    setUp(() => mockObserver = NavigatorObserverMock());
+    setUp(() => mockObserver = MockNavigatorObserver());
 
     Future<void> _pumpMyGroupsView(WidgetTester tester) async {
       var model = MockMyGroupsViewModel();
@@ -43,21 +43,23 @@ void main() {
       var groups = <Group>[];
       groups.add(Group.fromJson(mockGroup));
 
+      when(model.FETCH_OWNED_GROUPS).thenAnswer((_) => 'fetch_owned_groups');
+      when(model.FETCH_MEMBER_GROUPS).thenAnswer((_) => 'fetch_member_groups');
+      when(model.previousMemberGroupsBatch).thenReturn(null);
+      when(model.previousMentoredGroupsBatch).thenReturn(null);
       when(model.fetchMentoredGroups()).thenReturn(null);
       when(model.fetchMemberGroups()).thenReturn(null);
 
-      when(model.isSuccess(model.FETCH_MENTORED_GROUPS))
-          .thenAnswer((_) => true);
-      when(model.isSuccess(model.FETCH_MEMBER_GROUPS)).thenAnswer((_) => true);
+      when(model.isSuccess(any)).thenAnswer((_) => true);
 
-      when(model.mentoredGroups).thenAnswer((_) => groups);
+      when(model.ownedGroups).thenAnswer((_) => groups);
       when(model.memberGroups).thenAnswer((_) => groups);
 
       await tester.pumpWidget(
         GetMaterialApp(
           onGenerateRoute: CVRouter.generateRoute,
           navigatorObservers: [mockObserver],
-          home: MyGroupsView(),
+          home: const MyGroupsView(),
         ),
       );
 
@@ -72,35 +74,50 @@ void main() {
       await tester.pumpAndSettle();
 
       // Make New Group Button
-      expect(find.widgetWithText(CVPrimaryButton, '+ Make New Group'),
-          findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+
+      // Tap Joined Groups Tab
+      await tester.tap(find.widgetWithText(Tab, "Joined"));
+      await tester.pumpAndSettle();
 
       // Member Group Card (1)
       expect(find.byType(GroupMemberCard), findsOneWidget);
 
+      // Group Names text inside Member Card
+      expect(find.text('Test Group'), findsOneWidget);
+
+      // Total Members text inside Member Card
+      expect(find.text('Total Members: 1'), findsOneWidget);
+
+      // View Button for Member Group Card
+      expect(find.widgetWithText(CardButton, 'View'), findsOneWidget);
+
+      // Tap Mentored Groups Tab
+      await tester.tap(find.widgetWithText(Tab, "Owned"));
+      await tester.pumpAndSettle();
+
       // Mentored Group Card (1)
       expect(find.byType(GroupMentorCard), findsOneWidget);
 
-      // Group Names text inside Member and Mentor Card
-      expect(find.text('Test Group'), findsNWidgets(2));
+      // Group Names text inside Mentor Card
+      expect(find.text('Test Group'), findsOneWidget);
 
-      // Total Members text inside Member and Mentor Card
-      expect(find.text('Total Members: 1'), findsNWidgets(2));
+      // Total Members text inside Mentor Card
+      expect(find.text('Total Members: 1'), findsOneWidget);
 
       // Edit, Delete Buttons for Mentored Group Card
       expect(find.widgetWithText(CardButton, 'Edit'), findsOneWidget);
       expect(find.widgetWithText(CardButton, 'Delete'), findsOneWidget);
 
-      // View Button for Mentored Group Card and Member Group Card
-      expect(find.widgetWithText(CardButton, 'View'), findsNWidgets(2));
+      // View Button for Mentored Group Card
+      expect(find.widgetWithText(CardButton, 'View'), findsOneWidget);
     });
 
     testWidgets('New Group Page is Pushed onTap', (WidgetTester tester) async {
       await _pumpMyGroupsView(tester);
       await tester.pumpAndSettle();
 
-      await tester
-          .tap(find.widgetWithText(CVPrimaryButton, '+ Make New Group'));
+      await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
 
       verify(mockObserver.didPush(any, any));
@@ -122,10 +139,11 @@ void main() {
       var _groupDetailsViewModel = MockGroupDetailsViewModel();
       locator.registerSingleton<GroupDetailsViewModel>(_groupDetailsViewModel);
 
+      when(_groupDetailsViewModel.FETCH_GROUP_DETAILS)
+          .thenAnswer((_) => 'fetch_group_details');
       when(_groupDetailsViewModel.fetchGroupDetails(any)).thenReturn(null);
-      when(_groupDetailsViewModel
-              .isSuccess(_groupDetailsViewModel.FETCH_GROUP_DETAILS))
-          .thenAnswer((_) => false);
+      when(_groupDetailsViewModel.isMentor).thenAnswer((_) => false);
+      when(_groupDetailsViewModel.isSuccess(any)).thenAnswer((_) => false);
 
       await tester.tap(find.widgetWithText(CardButton, 'View').first);
       await tester.pumpAndSettle();
@@ -152,10 +170,10 @@ void main() {
 
       // Mock Dialog Service
       when(_dialogService.showConfirmationDialog(
-              title: anyNamed('title'),
-              description: anyNamed('description'),
-              confirmationTitle: anyNamed('confirmationTitle')))
-          .thenAnswer((_) => Future.value(DialogResponse(confirmed: false)));
+        title: anyNamed('title'),
+        description: anyNamed('description'),
+        confirmationTitle: anyNamed('confirmationTitle'),
+      )).thenAnswer((_) => Future.value(DialogResponse(confirmed: false)));
 
       await _pumpMyGroupsView(tester);
       await tester.pumpAndSettle();
@@ -165,10 +183,10 @@ void main() {
 
       // Verify Dialog Service was called after Delete Button is pressed
       verify(_dialogService.showConfirmationDialog(
-              title: anyNamed('title'),
-              description: anyNamed('description'),
-              confirmationTitle: anyNamed('confirmationTitle')))
-          .called(1);
+        title: anyNamed('title'),
+        description: anyNamed('description'),
+        confirmationTitle: anyNamed('confirmationTitle'),
+      )).called(1);
     });
   });
 }

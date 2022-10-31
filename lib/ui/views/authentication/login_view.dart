@@ -14,18 +14,18 @@ import 'package:mobile_app/utils/validators.dart';
 import 'package:mobile_app/viewmodels/authentication/login_viewmodel.dart';
 
 class LoginView extends StatefulWidget {
-  static const String id = 'login_view';
+  const LoginView({Key? key}) : super(key: key);
 
+  static const String id = 'login_view';
   @override
   _LoginViewState createState() => _LoginViewState();
 }
 
 class _LoginViewState extends State<LoginView> {
-  LoginViewModel _model;
+  late LoginViewModel _model;
   final _formKey = GlobalKey<FormState>();
-  String _email, _password;
+  late String _email, _password;
   final _emailFocusNode = FocusNode();
-
   @override
   void dispose() {
     _emailFocusNode.dispose();
@@ -35,6 +35,9 @@ class _LoginViewState extends State<LoginView> {
   Widget _buildLoginImage() {
     return Container(
       width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height > 800
+          ? MediaQuery.of(context).size.height * 0.56
+          : MediaQuery.of(context).size.height * 0.475,
       color: CVTheme.imageBackground,
       padding: const EdgeInsets.all(16),
       child: SafeArea(
@@ -52,7 +55,7 @@ class _LoginViewState extends State<LoginView> {
       type: TextInputType.emailAddress,
       validator: (value) =>
           Validators.isEmailValid(value) ? null : 'Please enter a valid email',
-      onSaved: (value) => _email = value.trim(),
+      onSaved: (value) => _email = value!.trim(),
       onFieldSubmitted: (_) =>
           FocusScope.of(context).requestFocus(_emailFocusNode),
     );
@@ -61,8 +64,9 @@ class _LoginViewState extends State<LoginView> {
   Widget _buildPasswordInput() {
     return CVPasswordField(
       focusNode: _emailFocusNode,
-      validator: (value) => value.isEmpty ? 'Password can\'t be empty' : null,
-      onSaved: (value) => _password = value.trim(),
+      validator: (value) =>
+          value?.isEmpty ?? true ? 'Password can\'t be empty' : null,
+      onSaved: (value) => _password = value!.trim(),
     );
   }
 
@@ -105,6 +109,7 @@ class _LoginViewState extends State<LoginView> {
               text: 'Sign Up',
               style: TextStyle(
                 color: CVTheme.highlightText(context),
+                fontSize: 16,
               ),
             ),
           ],
@@ -117,20 +122,23 @@ class _LoginViewState extends State<LoginView> {
     if (Validators.validateAndSaveForm(_formKey) &&
         !_model.isBusy(_model.LOGIN)) {
       FocusScope.of(context).requestFocus(FocusNode());
-
       await _model.login(_email, _password);
-
       if (_model.isSuccess(_model.LOGIN)) {
         // show login successful snackbar..
-        SnackBarUtils.showDark('Login Successful');
-
+        SnackBarUtils.showDark(
+          'Login Successful',
+          'Welcome back!',
+        );
         // move to home view on successful login..
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 1));
         await Get.offAllNamed(CVLandingView.id);
       } else if (_model.isError(_model.LOGIN)) {
         // show failure snackbar..
-        SnackBarUtils.showDark(_model.errorMessageFor(_model.LOGIN));
-        _formKey.currentState.reset();
+        SnackBarUtils.showDark(
+          'Error',
+          _model.errorMessageFor(_model.LOGIN),
+        );
+        _formKey.currentState?.reset();
       }
     }
   }
@@ -146,16 +154,16 @@ class _LoginViewState extends State<LoginView> {
             child: Column(
               children: <Widget>[
                 _buildLoginImage(),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _buildEmailInput(),
                 _buildPasswordInput(),
                 _buildForgotPasswordComponent(),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildLoginButton(),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _buildNewUserSignUpComponent(),
-                SizedBox(height: 32),
-                AuthOptionsView(isSignUp: false),
+                const SizedBox(height: 30),
+                const AuthOptionsView(isSignUp: false),
               ],
             ),
           ),

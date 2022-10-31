@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:html_editor/html_editor.dart';
+import 'package:flutter_summernote/flutter_summernote.dart';
 import 'package:mobile_app/cv_theme.dart';
 import 'package:mobile_app/locator.dart';
 import 'package:mobile_app/models/projects.dart';
 import 'package:mobile_app/services/dialog_service.dart';
+import 'package:mobile_app/ui/components/cv_html_editor.dart';
 import 'package:mobile_app/ui/components/cv_primary_button.dart';
 import 'package:mobile_app/ui/components/cv_text_field.dart';
 import 'package:mobile_app/ui/views/base_view.dart';
@@ -13,10 +14,10 @@ import 'package:mobile_app/utils/validators.dart';
 import 'package:mobile_app/viewmodels/projects/edit_project_viewmodel.dart';
 
 class EditProjectView extends StatefulWidget {
+  const EditProjectView({Key? key, required this.project}) : super(key: key);
+
   static const String id = 'edit_project_view';
   final Project project;
-
-  const EditProjectView({Key key, this.project}) : super(key: key);
 
   @override
   _EditProjectViewState createState() => _EditProjectViewState();
@@ -24,11 +25,11 @@ class EditProjectView extends StatefulWidget {
 
 class _EditProjectViewState extends State<EditProjectView> {
   final DialogService _dialogService = locator<DialogService>();
-  EditProjectViewModel _model;
+  late EditProjectViewModel _model;
   final _formKey = GlobalKey<FormState>();
-  String _name, _projectAccessType;
-  List<String> _tags;
-  final GlobalKey<HtmlEditorState> _descriptionEditor = GlobalKey();
+  late String _name, _projectAccessType;
+  late List<String> _tags;
+  final GlobalKey<FlutterSummernoteState> _descriptionEditor = GlobalKey();
 
   final _nameFocusNode = FocusNode();
   final _tagsListFocusNode = FocusNode();
@@ -52,8 +53,9 @@ class _EditProjectViewState extends State<EditProjectView> {
     return CVTextField(
       label: 'Name',
       initialValue: _name,
-      validator: (value) => value.isEmpty ? "Name can't be empty" : null,
-      onSaved: (value) => _name = value.trim(),
+      validator: (value) =>
+          value?.isEmpty ?? true ? "Name can't be empty" : null,
+      onSaved: (value) => _name = value!.trim(),
       onFieldSubmitted: (_) =>
           FocusScope.of(context).requestFocus(_nameFocusNode),
     );
@@ -65,7 +67,7 @@ class _EditProjectViewState extends State<EditProjectView> {
       focusNode: _nameFocusNode,
       initialValue: _tags.join(' , '),
       onSaved: (value) =>
-          _tags = value.split(',').map((tag) => tag.trim()).toList(),
+          _tags = value!.split(',').map((tag) => tag.trim()).toList(),
       onFieldSubmitted: (_) {
         _nameFocusNode.unfocus();
         FocusScope.of(context).requestFocus(_tagsListFocusNode);
@@ -82,7 +84,8 @@ class _EditProjectViewState extends State<EditProjectView> {
           labelText: 'Project Access Type',
         ),
         value: _projectAccessType,
-        onChanged: (String value) {
+        onChanged: (String? value) {
+          if (value == null) return;
           setState(() {
             _projectAccessType = value;
           });
@@ -90,12 +93,12 @@ class _EditProjectViewState extends State<EditProjectView> {
         validator: (category) =>
             category == null ? 'Choose a Project Access Type' : null,
         items: ['Public', 'Private', 'Limited Access']
-            ?.map<DropdownMenuItem<String>>((var type) {
+            .map<DropdownMenuItem<String>>((var type) {
           return DropdownMenuItem<String>(
             value: type,
             child: Text(type),
           );
-        })?.toList(),
+        }).toList(),
       ),
     );
   }
@@ -106,17 +109,7 @@ class _EditProjectViewState extends State<EditProjectView> {
         horizontal: 16,
         vertical: 8,
       ),
-      child: HtmlEditor(
-        decoration: BoxDecoration(
-          color: CVTheme.htmlEditorBg,
-          border: Border.all(
-            color: CVTheme.primaryColorDark,
-          ),
-        ),
-        value: widget.project.attributes.description ?? '',
-        key: _descriptionEditor,
-        height: 300,
-      ),
+      child: CVHtmlEditor(editorKey: _descriptionEditor),
     );
   }
 
@@ -130,18 +123,24 @@ class _EditProjectViewState extends State<EditProjectView> {
         widget.project.id,
         name: _name,
         projectAccessType: _projectAccessType,
-        description: await _descriptionEditor.currentState.getText(),
+        description: await _descriptionEditor.currentState!.getText(),
         tagsList: _tags,
       );
 
       _dialogService.popDialog();
 
       if (_model.isSuccess(_model.UPDATE_PROJECT)) {
-        await Future.delayed(Duration(seconds: 1));
-        await Get.back(result: _model.updatedProject);
-        SnackBarUtils.showDark('Project Updated');
+        await Future.delayed(const Duration(seconds: 1));
+        Get.back(result: _model.updatedProject);
+        SnackBarUtils.showDark(
+          'Project Updated',
+          'The project was successfully updated.',
+        );
       } else if (_model.isError(_model.UPDATE_PROJECT)) {
-        SnackBarUtils.showDark(_model.errorMessageFor(_model.UPDATE_PROJECT));
+        SnackBarUtils.showDark(
+          'Error',
+          _model.errorMessageFor(_model.UPDATE_PROJECT),
+        );
       }
     }
   }
@@ -173,7 +172,7 @@ class _EditProjectViewState extends State<EditProjectView> {
                 _buildTagsInput(),
                 _buildProjectAccessTypeInput(),
                 _buildDescriptionInput(),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildUpdateProjectButton(),
               ],
             ),

@@ -1,4 +1,4 @@
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mobile_app/config/environment_config.dart';
 import 'package:mobile_app/enums/auth_type.dart';
@@ -22,23 +22,22 @@ class AuthOptionsViewModel extends BaseModel {
   final LocalStorageService _storage = locator<LocalStorageService>();
 
   Future facebookAuth({bool isSignUp = false}) async {
-    final facebookLogin = FacebookLogin();
-    final result = await facebookLogin.logIn(['email']);
+    final result = await FacebookAuth.instance.login();
 
     switch (result.status) {
-      case FacebookLoginStatus.loggedIn:
+      case LoginStatus.success:
         setStateFor(FB_OAUTH, ViewState.Busy);
 
         try {
           // save token & current user to local storage..
           if (isSignUp) {
             _storage.token = await _userApi.oauthSignup(
-              accessToken: result.accessToken.token,
+              accessToken: result.accessToken!.token,
               provider: 'facebook',
             );
           } else {
             _storage.token = await _userApi.oauthLogin(
-              accessToken: result.accessToken.token,
+              accessToken: result.accessToken!.token,
               provider: 'facebook',
             );
           }
@@ -57,13 +56,15 @@ class AuthOptionsViewModel extends BaseModel {
           setErrorMessageFor(FB_OAUTH, f.message);
         }
         break;
-      case FacebookLoginStatus.cancelledByUser:
+      case LoginStatus.cancelled:
         setStateFor(FB_OAUTH, ViewState.Error);
         setErrorMessageFor(FB_OAUTH, 'Login Cancelled By User!');
         break;
-      case FacebookLoginStatus.error:
+      case LoginStatus.failed:
         setStateFor(FB_OAUTH, ViewState.Error);
         setErrorMessageFor(FB_OAUTH, 'Unable to authenticate!');
+        break;
+      case LoginStatus.operationInProgress:
         break;
     }
   }
@@ -74,19 +75,19 @@ class AuthOptionsViewModel extends BaseModel {
     try {
       await _googleSignIn.signIn();
       var _googleSignInAuthentication =
-          await _googleSignIn.currentUser.authentication;
+          await _googleSignIn.currentUser!.authentication;
 
       setStateFor(GOOGLE_OAUTH, ViewState.Busy);
 
       // save token & current user to local storage..
       if (isSignUp) {
         _storage.token = await _userApi.oauthSignup(
-          accessToken: _googleSignInAuthentication.accessToken,
+          accessToken: _googleSignInAuthentication.accessToken!,
           provider: 'google',
         );
       } else {
         _storage.token = await _userApi.oauthLogin(
-          accessToken: _googleSignInAuthentication.accessToken,
+          accessToken: _googleSignInAuthentication.accessToken!,
           provider: 'google',
         );
       }
@@ -130,12 +131,12 @@ class AuthOptionsViewModel extends BaseModel {
       // save token & current user to local storage..
       if (isSignUp) {
         _storage.token = await _userApi.oauthSignup(
-          accessToken: _accessTokenResponse.accessToken,
+          accessToken: _accessTokenResponse!.accessToken!,
           provider: 'github',
         );
       } else {
         _storage.token = await _userApi.oauthLogin(
-          accessToken: _accessTokenResponse.accessToken,
+          accessToken: _accessTokenResponse!.accessToken!,
           provider: 'github',
         );
       }

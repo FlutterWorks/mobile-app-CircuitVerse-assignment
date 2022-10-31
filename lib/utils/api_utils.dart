@@ -12,11 +12,20 @@ class ApiUtils {
   static http.Client client = http.Client();
 
   /// Returns JSON GET response
-  static Future<dynamic> get(String uri, {Map<String, String> headers}) async {
+  static Future<dynamic> get(
+    String uri, {
+    Map<String, String>? headers,
+    bool utfDecoder = false,
+    bool rawResponse = false,
+  }) async {
     try {
-      final response = await client.get(uri, headers: headers);
-      final jsonResponse = ApiUtils.jsonResponse(response);
-      return jsonResponse;
+      final response = await client.get(Uri.parse(uri), headers: headers);
+
+      if (rawResponse) {
+        return response.body;
+      }
+
+      return ApiUtils.jsonResponse(response, utfDecoder: utfDecoder);
     } on SocketException {
       throw Failure(Constants.NO_INTERNET_CONNECTION);
     } on HttpException {
@@ -25,13 +34,15 @@ class ApiUtils {
   }
 
   /// Returns JSON POST response
-  static Future<dynamic> post(String uri,
-      {Map<String, String> headers, dynamic body}) async {
+  static Future<dynamic> post(
+    String uri, {
+    required Map<String, String> headers,
+    dynamic body,
+  }) async {
     try {
-      final response =
-          await client.post(uri, headers: headers, body: jsonEncode(body));
-      final jsonResponse = ApiUtils.jsonResponse(response);
-      return jsonResponse;
+      final response = await client.post(Uri.parse(uri),
+          headers: headers, body: jsonEncode(body));
+      return ApiUtils.jsonResponse(response);
     } on SocketException {
       throw Failure(Constants.NO_INTERNET_CONNECTION);
     } on HttpException {
@@ -40,16 +51,18 @@ class ApiUtils {
   }
 
   /// Returns JSON PUT response
-  static Future<dynamic> put(String uri,
-      {Map<String, String> headers, dynamic body}) async {
+  static Future<dynamic> put(
+    String uri, {
+    required Map<String, String> headers,
+    dynamic body,
+  }) async {
     try {
       final response = await client.put(
-        uri,
+        Uri.parse(uri),
         headers: headers,
         body: jsonEncode(body),
       );
-      final jsonResponse = ApiUtils.jsonResponse(response);
-      return jsonResponse;
+      return ApiUtils.jsonResponse(response);
     } on SocketException {
       throw Failure(Constants.NO_INTERNET_CONNECTION);
     } on HttpException {
@@ -58,13 +71,53 @@ class ApiUtils {
   }
 
   /// Returns JSON PATCH response
-  static Future<dynamic> patch(String uri,
-      {Map<String, String> headers, dynamic body}) async {
+  static Future<dynamic> patch(
+    String uri, {
+    required Map<String, String> headers,
+    dynamic body,
+  }) async {
     try {
-      final response =
-          await client.patch(uri, headers: headers, body: jsonEncode(body));
-      final jsonResponse = ApiUtils.jsonResponse(response);
-      return jsonResponse;
+      final response = await client.patch(
+        Uri.parse(uri),
+        headers: headers,
+        body: jsonEncode(body),
+      );
+      return ApiUtils.jsonResponse(response);
+    } on SocketException {
+      throw Failure(Constants.NO_INTERNET_CONNECTION);
+    } on HttpException {
+      throw Failure(Constants.HTTP_EXCEPTION);
+    }
+  }
+
+  static Future patchMutipart(
+    String uri, {
+    required Map<String, String> headers,
+    required List<http.MultipartFile> files,
+    dynamic body,
+  }) async {
+    try {
+      final request = http.MultipartRequest(
+        'PATCH',
+        Uri.parse(uri),
+      );
+      request.headers.addAll(headers);
+
+      body ??= {};
+      for (final key in body.keys) {
+        if (body[key] == null) continue;
+
+        request.fields[key] = body[key].toString();
+      }
+
+      for (final file in files) {
+        request.files.add(file);
+      }
+
+      final response = await http.Response.fromStream(
+        await client.send(request),
+      );
+      return ApiUtils.jsonResponse(response);
     } on SocketException {
       throw Failure(Constants.NO_INTERNET_CONNECTION);
     } on HttpException {
@@ -73,12 +126,16 @@ class ApiUtils {
   }
 
   /// Returns JSON DELETE response
-  static Future<dynamic> delete(String uri,
-      {Map<String, String> headers}) async {
+  static Future<dynamic> delete(
+    String uri, {
+    required Map<String, String> headers,
+  }) async {
     try {
-      final response = await client.delete(uri, headers: headers);
-      final jsonResponse = ApiUtils.jsonResponse(response);
-      return jsonResponse;
+      final response = await client.delete(
+        Uri.parse(uri),
+        headers: headers,
+      );
+      return ApiUtils.jsonResponse(response);
     } on SocketException {
       throw Failure(Constants.NO_INTERNET_CONNECTION);
     } on HttpException {
@@ -86,15 +143,17 @@ class ApiUtils {
     }
   }
 
-  static dynamic jsonResponse(http.Response response) {
+  static dynamic jsonResponse(http.Response response,
+      {bool utfDecoder = false}) {
     switch (response.statusCode) {
       case 200:
       case 201:
       case 202:
       case 204:
-        var responseJson =
-            response.body == '' ? {} : json.decode(response.body);
-        return responseJson;
+        return response.body == ''
+            ? {}
+            : json.decode(
+                utfDecoder ? utf8.decode(response.bodyBytes) : response.body);
       case 400:
         throw BadRequestException(response.body);
       case 401:

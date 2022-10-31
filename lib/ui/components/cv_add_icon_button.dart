@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:mobile_app/cv_theme.dart';
 
 class CVAddIconButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const CVAddIconButton({Key key, this.onPressed}) : super(key: key);
+  const CVAddIconButton({this.onPressed, Key? key}) : super(key: key);
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
       padding: const EdgeInsets.all(0),
-      icon: Icon(
+      icon: const Icon(
         Icons.add_circle_outline,
         color: CVTheme.grey,
         size: 36,

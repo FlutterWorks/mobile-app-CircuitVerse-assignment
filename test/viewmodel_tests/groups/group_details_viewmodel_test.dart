@@ -41,7 +41,7 @@ void main() {
 
         // verify group data is populated..
         expect(_model.group, _group);
-        expect(_model.groupMembers, _group.groupMembers);
+        expect(_model.members, _group.groupMembers);
         expect(_model.assignments, _group.assignments);
       });
 
@@ -64,7 +64,7 @@ void main() {
       test('When called & service returns success response', () async {
         var _mockGroupMembersApi = getAndRegisterGroupMembersApiMock();
         when(_mockGroupMembersApi.addGroupMembers(
-                '1', 'test@test.com,pending@test.com,invalid@test.com'))
+                '1', 'test@test.com,pending@test.com,invalid@test.com', false))
             .thenAnswer((_) => Future.value(_addedMembers));
 
         when(_mockGroupMembersApi.fetchGroupMembers('1'))
@@ -72,28 +72,28 @@ void main() {
 
         var _model = GroupDetailsViewModel();
         await _model.addMembers(
-            '1', 'test@test.com,pending@test.com,invalid@test.com');
+            '1', 'test@test.com,pending@test.com,invalid@test.com', false);
 
         // verify API call is made..
         verify(_mockGroupMembersApi.addGroupMembers(
-            '1', 'test@test.com,pending@test.com,invalid@test.com'));
+            '1', 'test@test.com,pending@test.com,invalid@test.com', false));
         verify(_mockGroupMembersApi.fetchGroupMembers('1'));
         expect(_model.stateFor(_model.ADD_GROUP_MEMBERS), ViewState.Success);
 
         expect(_model.addedMembersSuccessMessage,
             'test@test.com was/were added pending@test.com is/are pending invalid@test.com is/are invalid');
-        expect(_model.groupMembers, _groupMembers.data);
+        expect(_model.members, _groupMembers.data);
       });
 
       test('When called & service returns error', () async {
         var _mockGroupMembersApi = getAndRegisterGroupMembersApiMock();
         when(_mockGroupMembersApi.addGroupMembers(
-                '1', 'test@test.com,pending@test.com,invalid@test.com'))
+                '1', 'test@test.com,pending@test.com,invalid@test.com', false))
             .thenThrow(Failure('Some Error Occurred!'));
 
         var _model = GroupDetailsViewModel();
         await _model.addMembers(
-            '1', 'test@test.com,pending@test.com,invalid@test.com');
+            '1', 'test@test.com,pending@test.com,invalid@test.com', false);
 
         // verify Error ViewState with proper error message..
         expect(_model.stateFor(_model.ADD_GROUP_MEMBERS), ViewState.Error);
@@ -109,8 +109,8 @@ void main() {
             .thenAnswer((_) => Future.value(true));
 
         var _model = GroupDetailsViewModel();
-        _model.groupMembers.add(_groupMember);
-        await _model.deleteGroupMember('1');
+        _model.members.add(_groupMember);
+        await _model.deleteGroupMember('1', true);
 
         // verify API call is made..
         verify(_mockGroupMembersApi.deleteGroupMember('1'));
@@ -118,7 +118,7 @@ void main() {
 
         // verify group member is deleted..
         expect(
-            _model.groupMembers
+            _model.members
                 .where((member) => _groupMember.id == member.id)
                 .isEmpty,
             true);
@@ -130,8 +130,8 @@ void main() {
             .thenAnswer((_) => Future.value(false));
 
         var _model = GroupDetailsViewModel();
-        _model.groupMembers.add(_groupMember);
-        await _model.deleteGroupMember('1');
+        _model.members.add(_groupMember);
+        await _model.deleteGroupMember('1', true);
 
         // verify Error ViewState with proper error message..
         expect(_model.stateFor(_model.DELETE_GROUP_MEMBER), ViewState.Error);
@@ -145,8 +145,8 @@ void main() {
             .thenThrow(Failure('Some Error Occurred!'));
 
         var _model = GroupDetailsViewModel();
-        _model.groupMembers.add(_groupMember);
-        await _model.deleteGroupMember('1');
+        _model.members.add(_groupMember);
+        await _model.deleteGroupMember('1', true);
 
         // verify Error ViewState with proper error message..
         expect(_model.stateFor(_model.DELETE_GROUP_MEMBER), ViewState.Error);
@@ -229,7 +229,7 @@ void main() {
         when(_mockGroupsApi.fetchGroupDetails('1')).thenAnswer((_) =>
             Future.value(_group
               ..assignments
-                  .firstWhere((assignment) => assignment.id == _assignment.id)
+                  ?.firstWhere((assignment) => assignment.id == _assignment.id)
                   .attributes
                   .currentUserProjectId = 1));
 

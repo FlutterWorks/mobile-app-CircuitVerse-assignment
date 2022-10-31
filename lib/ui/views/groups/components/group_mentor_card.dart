@@ -6,12 +6,16 @@ import 'package:mobile_app/ui/views/groups/components/group_card_button.dart';
 import 'package:mobile_app/ui/views/groups/group_details_view.dart';
 
 class GroupMentorCard extends StatefulWidget {
+  const GroupMentorCard({
+    Key? key,
+    required this.group,
+    required this.onEdit,
+    required this.onDelete,
+  }) : super(key: key);
+
   final Group group;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-
-  const GroupMentorCard({Key key, this.group, this.onEdit, this.onDelete})
-      : super(key: key);
 
   @override
   _GroupMentorCardState createState() => _GroupMentorCardState();
@@ -24,7 +28,7 @@ class _GroupMentorCardState extends State<GroupMentorCard> {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        border: Border(
+        border: const Border(
           top: BorderSide(
             width: 10,
             color: CVTheme.primaryColor,
@@ -33,7 +37,7 @@ class _GroupMentorCardState extends State<GroupMentorCard> {
         boxShadow: [
           BoxShadow(
             color: CVTheme.boxShadow(context),
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
             blurRadius: 2,
           )
         ],
@@ -43,7 +47,7 @@ class _GroupMentorCardState extends State<GroupMentorCard> {
         children: <Widget>[
           Text(
             widget.group.attributes.name,
-            style: Theme.of(context).textTheme.headline5.copyWith(
+            style: Theme.of(context).textTheme.headline5?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
             textAlign: TextAlign.center,
@@ -56,7 +60,7 @@ class _GroupMentorCardState extends State<GroupMentorCard> {
             ),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               Flexible(
                 child: CardButton(

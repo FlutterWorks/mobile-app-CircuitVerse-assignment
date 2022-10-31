@@ -4,30 +4,31 @@ import 'package:mobile_app/viewmodels/base_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 class BaseView<T extends BaseModel> extends StatefulWidget {
-  final Widget Function(BuildContext context, T model, Widget child) builder;
-  final Function(T) onModelReady;
-  final Function(T) onModelDestroy;
-  final T model;
-
-  BaseView({
-    @required this.builder,
+  const BaseView({
+    required this.builder,
     this.onModelReady,
     this.onModelDestroy,
     this.model,
-  });
+    Key? key,
+  }) : super(key: key);
+
+  final Widget Function(BuildContext context, T model, Widget? child) builder;
+  final Function(T)? onModelReady;
+  final Function(T)? onModelDestroy;
+  final T? model;
 
   @override
   _BaseViewState<T> createState() => _BaseViewState<T>();
 }
 
 class _BaseViewState<T extends BaseModel> extends State<BaseView<T>> {
-  T model;
+  late T model;
 
   @override
   void initState() {
     model = widget.model ?? locator<T>();
     if (widget.onModelReady != null) {
-      widget.onModelReady(model);
+      widget.onModelReady!(model);
     }
     super.initState();
   }
@@ -35,7 +36,7 @@ class _BaseViewState<T extends BaseModel> extends State<BaseView<T>> {
   @override
   void dispose() {
     if (widget.onModelDestroy != null) {
-      widget.onModelDestroy(model);
+      widget.onModelDestroy!(model);
     }
     super.dispose();
   }
